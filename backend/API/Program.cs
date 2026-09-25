@@ -35,6 +35,14 @@ builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IRepartidorRepository, RepartidorRepository>();
 
+// Inyección de dependencias - Casos de uso (Application)
+builder.Services.AddScoped<Application.UseCases.Repartidores.CrearRepartidor.CrearRepartidorHandler>();
+builder.Services.AddScoped<Application.UseCases.Repartidores.ActualizarRepartidor.ActualizarRepartidorHandler>();
+builder.Services.AddScoped<Application.UseCases.Repartidores.CambiarDisponibilidad.CambiarDisponibilidadHandler>();
+builder.Services.AddScoped<Application.UseCases.Repartidores.ObtenerRepartidores.ObtenerRepartidoresHandler>();
+builder.Services.AddScoped<Application.UseCases.Repartidores.ObtenerRepartidorPorId.ObtenerRepartidorPorIdHandler>();
+builder.Services.AddScoped<Application.UseCases.Clientes.BuscarClientes.BuscarClientesHandler>();
+
 var app = builder.Build();
 
 // Manejo global de excepciones al inicio del pipeline
