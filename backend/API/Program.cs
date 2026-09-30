@@ -68,12 +68,14 @@ builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 // Usuarios / Autenticación
 builder.Services.AddScoped<Application.UseCases.Usuarios.LoginUsuario.LoginUsuarioHandler>();
 
-// Repartidores (RF02)
+// Repartidores (RF02, RF09, RF10, RF11)
 builder.Services.AddScoped<Application.UseCases.Repartidores.CrearRepartidor.CrearRepartidorHandler>();
 builder.Services.AddScoped<Application.UseCases.Repartidores.ActualizarRepartidor.ActualizarRepartidorHandler>();
 builder.Services.AddScoped<Application.UseCases.Repartidores.CambiarDisponibilidad.CambiarDisponibilidadHandler>();
 builder.Services.AddScoped<Application.UseCases.Repartidores.ObtenerRepartidores.ObtenerRepartidoresHandler>();
 builder.Services.AddScoped<Application.UseCases.Repartidores.ObtenerRepartidorPorId.ObtenerRepartidorPorIdHandler>();
+builder.Services.AddScoped<Application.UseCases.Repartidores.AsignarPedido.AsignarPedidoHandler>();
+builder.Services.AddScoped<Application.UseCases.Repartidores.ConsultarCargaTrabajo.ConsultarCargaTrabajoHandler>();
 
 // Clientes (RF03, RF04, RF05)
 builder.Services.AddScoped<Application.UseCases.Clientes.BuscarClientes.BuscarClientesHandler>();

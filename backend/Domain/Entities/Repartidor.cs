@@ -7,26 +7,55 @@ public class Repartidor : Usuario
 {
     private readonly List<Pedido> _pedidos = new();
 
+    public const int CapacidadMaximaPorDefecto = 5;
+
     public string Vehiculo { get; private set; } = null!;
     public bool Disponible { get; private set; }
+    public int CapacidadMaxima { get; private set; } = CapacidadMaximaPorDefecto;
     public IReadOnlyCollection<Pedido> Pedidos => _pedidos.AsReadOnly();
 
     // Constructor privado sin parámetros para EF Core
     private Repartidor() { }
 
-    public Repartidor(string nombre, string email, string telefono, string passwordHash, string vehiculo, bool disponible = true)
+    public Repartidor(
+        string nombre,
+        string email,
+        string telefono,
+        string passwordHash,
+        string vehiculo,
+        bool disponible = true,
+        int capacidadMaxima = CapacidadMaximaPorDefecto)
         : base(nombre, email, telefono, passwordHash)
     {
         if (string.IsNullOrWhiteSpace(vehiculo))
             throw new DomainException("El vehículo del repartidor no puede estar vacío.");
 
+        if (capacidadMaxima <= 0)
+            throw new DomainException("La capacidad máxima debe ser mayor a cero.");
+
         Vehiculo = vehiculo.Trim();
         Disponible = disponible;
+        CapacidadMaxima = capacidadMaxima;
+    }
+
+    // Constructor para hidratación y pruebas unitarias
+    public Repartidor(
+        int id,
+        string nombre,
+        string email,
+        string telefono,
+        string passwordHash,
+        string vehiculo,
+        bool disponible = true,
+        int capacidadMaxima = CapacidadMaximaPorDefecto)
+        : this(nombre, email, telefono, passwordHash, vehiculo, disponible, capacidadMaxima)
+    {
+        Id = id;
     }
 
     // Polimorfismo justificado
     public override string ObtenerRol() => "Repartidor";
-    public override bool PuedeAsignarseEntregas() => Disponible;
+    public override bool PuedeAsignarseEntregas() => TieneCapacidadDisponible();
 
     public void SetDisponible(bool disponible)
     {
@@ -41,14 +70,30 @@ public class Repartidor : Usuario
         Vehiculo = vehiculo.Trim();
     }
 
-    public void AgregarPedido(Pedido pedido)
+    public void AsignarPedido(Pedido pedido)
     {
         ArgumentNullException.ThrowIfNull(pedido);
+
         if (!Disponible)
             throw new DomainException("No se puede asignar un pedido a un repartidor que no está disponible.");
 
+        if (pedido.Estado == EstadoPedido.Entregado || pedido.Estado == EstadoPedido.Cancelado)
+            throw new DomainException("No se puede asignar un pedido que ya ha sido entregado o cancelado.");
+
+        if (ObtenerCargaTrabajoActiva() >= CapacidadMaxima)
+            throw new DomainException($"El repartidor ha alcanzado su capacidad máxima operativa ({CapacidadMaxima} pedidos).");
+
         _pedidos.Add(pedido);
+        pedido.AsignarRepartidor(this);
     }
+
+    public void AgregarPedido(Pedido pedido) => AsignarPedido(pedido);
+
+    public int ObtenerCargaTrabajoActiva()
+        => _pedidos.Count(p => p.Estado != EstadoPedido.Entregado && p.Estado != EstadoPedido.Cancelado);
+
+    public bool TieneCapacidadDisponible()
+        => Disponible && ObtenerCargaTrabajoActiva() < CapacidadMaxima;
 
     // 1. Recorrido: Filtrar los que CUMPLEN una condición (ej: entregados)
     public IEnumerable<Pedido> ObtenerPedidosEntregados()

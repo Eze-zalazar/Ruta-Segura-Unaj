@@ -16,17 +16,22 @@ public class RepartidorRepository : IRepartidorRepository
 
     public async Task<Repartidor?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await _context.Repartidores.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+        return await _context.Repartidores
+            .Include(r => r.Pedidos)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Repartidor>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Repartidores.ToListAsync(cancellationToken);
+        return await _context.Repartidores
+            .Include(r => r.Pedidos)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<Repartidor>> GetDisponiblesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Repartidores
+            .Include(r => r.Pedidos)
             .Where(r => r.Disponible)
             .ToListAsync(cancellationToken);
     }
