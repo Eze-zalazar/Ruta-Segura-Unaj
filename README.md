@@ -56,6 +56,7 @@ classDiagram
         EnCamino
         Entregado
         ConInconveniente
+        Cancelado
     }
 
     class PrioridadPedido {
@@ -118,6 +119,8 @@ classDiagram
         -observaciones: string
         +asignarRepartidor(r: Repartidor) void
         +cambiarEstado(nuevoEstado: EstadoPedido) void
+        +actualizarDatos(descripcion: string, fecha: DateTime, prioridad: PrioridadPedido, obs: string) void
+        +cancelar() void
         +registrarIncidencia(inc: Incidencia) void
     }
 
