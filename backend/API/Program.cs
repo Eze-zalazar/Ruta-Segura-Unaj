@@ -1,10 +1,7 @@
 using API.Middleware;
 using Application.Interfaces.Persistence;
-using Application.Interfaces.Services;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,28 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Autenticación con cookies nativas HttpOnly (RF01)
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.Cookie.Name = "RutaSegura.Session";
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
-        options.SlidingExpiration = true;
-        options.Events.OnRedirectToLogin = context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
-        };
-        options.Events.OnRedirectToAccessDenied = context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
-        };
-    });
 
 // CORS
 builder.Services.AddCors(options =>
@@ -54,9 +29,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
 
-// Inyección de dependencias - Servicios técnicos
-builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
-
 // Inyección de dependencias - Persistencia
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
@@ -64,22 +36,12 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IRepartidorRepository, RepartidorRepository>();
 
 // Inyección de dependencias - Casos de uso (Application)
-// Usuarios / Autenticación
-builder.Services.AddScoped<Application.UseCases.Usuarios.LoginUsuario.LoginUsuarioHandler>();
-
-// Repartidores (RF02)
 builder.Services.AddScoped<Application.UseCases.Repartidores.CrearRepartidor.CrearRepartidorHandler>();
 builder.Services.AddScoped<Application.UseCases.Repartidores.ActualizarRepartidor.ActualizarRepartidorHandler>();
 builder.Services.AddScoped<Application.UseCases.Repartidores.CambiarDisponibilidad.CambiarDisponibilidadHandler>();
 builder.Services.AddScoped<Application.UseCases.Repartidores.ObtenerRepartidores.ObtenerRepartidoresHandler>();
 builder.Services.AddScoped<Application.UseCases.Repartidores.ObtenerRepartidorPorId.ObtenerRepartidorPorIdHandler>();
-
-// Clientes (RF03, RF04, RF05)
 builder.Services.AddScoped<Application.UseCases.Clientes.BuscarClientes.BuscarClientesHandler>();
-builder.Services.AddScoped<Application.UseCases.Clientes.CrearCliente.CrearClienteHandler>();
-builder.Services.AddScoped<Application.UseCases.Clientes.ActualizarCliente.ActualizarClienteHandler>();
-builder.Services.AddScoped<Application.UseCases.Clientes.EliminarCliente.EliminarClienteHandler>();
-builder.Services.AddScoped<Application.UseCases.Clientes.ObtenerClientePorId.ObtenerClientePorIdHandler>();
 
 var app = builder.Build();
 
@@ -97,7 +59,6 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 
-app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

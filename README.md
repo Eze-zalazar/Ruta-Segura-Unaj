@@ -74,26 +74,17 @@ classDiagram
         -email: string
         -telefono: string
         -passwordHash: string
-        +actualizarDatosBasicos(nombre: string, tel: string) void
-        +actualizarPassword(nuevoPasswordHash: string) void
-        +obtenerRol()* string
-        +puedeAsignarseEntregas()* bool
+        +login(password: string) bool
     }
 
     class Encargado {
         -sector: string
-        +obtenerRol() string
-        +puedeAsignarseEntregas() bool
     }
 
     class Repartidor {
         -vehiculo: string
         -disponible: bool
-        +obtenerRol() string
-        +puedeAsignarseEntregas() bool
         +setDisponible(disp: bool) void
-        +actualizarVehiculo(vehiculo: string) void
-        +agregarPedido(p: Pedido) void
     }
 
     %% Clases del Dominio
@@ -103,9 +94,7 @@ classDiagram
         -telefono: string
         -direccion: string
         -referencia: string
-        +actualizarContacto(tel: string, dir: string, ref: string) void
-        +actualizarNombre(nombre: string) void
-        +agregarPedido(p: Pedido) void
+        +actualizarContacto(tel: string, dir: string) void
     }
 
     class Pedido {
@@ -147,42 +136,11 @@ classDiagram
 ### Descripción del Diseño UML
 
 1. **Herencia / Generalización (`Usuario <|-- Encargado`, `Usuario <|-- Repartidor`)**:
-   `Usuario` es una clase abstracta que provee la lógica común de identidad y credenciales. `Encargado` y `Repartidor` heredan de ella y agregan sus atributos particulares (`sector`, `vehiculo`, disponibilidad), resolviendo polimórficamente la regla de negocio `puedeAsignarseEntregas()`.
-2. **Separación de Responsabilidades**:
-   La autenticación y orquestación de sesiones reside en la capa de Aplicación (`LoginUsuarioHandler` / `IPasswordHasher`), manteniendo la entidad `Usuario` pura sin acoplamiento a servicios técnicos.
-3. **Composición (`Pedido "1" *-- "0..*" Incidencia`)**:
+   `Usuario` es una clase abstracta que provee la lógica común de identidad y autenticación. `Encargado` y `Repartidor` heredan de ella y agregan sus atributos particulares (`sector`, `vehiculo`, disponibilidad).
+2. **Composición (`Pedido "1" *-- "0..*" Incidencia`)**:
    Las incidencias tienen una relación todo-parte fuerte con el pedido; solo existen ligadas a un pedido determinado y no tienen sentido de forma huérfana.
-4. **Asociación**:
+3. **Asociación**:
    * `Pedido "0..*" --> "1" Cliente`: Todo pedido está asociado obligatoriamente a un único cliente.
    * `Pedido "0..*" --> "0..1" Repartidor`: Un pedido puede estar sin asignar (`0`) o asignado a un repartidor (`1`). A su vez, un repartidor puede tener varios pedidos a su cargo (`*`).
-5. **Dependencia**:
+4. **Dependencia**:
    `Pedido` depende de las enumeraciones `EstadoPedido` y `PrioridadPedido` para tipificar de forma consistente su ciclo de vida y urgencia.
-
----
-
-## 🔄 Diagrama de Secuencia: Autenticación y Sesiones (RF01)
-
-Flujo completo de login e inicio de sesión resuelto de manera directa con cookies nativas `HttpOnly` (`RutaSegura.Session`):
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor U as Usuario (Cliente Web)
-    participant C as AuthController
-    participant H as LoginUsuarioHandler
-    participant R as IUsuarioRepository
-    participant P as IPasswordHasher
-    participant S as HttpContext (Cookie Auth)
-
-    U->>C: POST /api/auth/login { email, password }
-    C->>H: HandleAsync(LoginUsuarioCommand)
-    H->>H: Sanitizar inputs (.Trim().ToLowerInvariant())
-    H->>R: GetByEmailAsync(emailNormalizado)
-    R-->>H: Usuario (Encargado / Repartidor)
-    H->>P: VerifyPassword(password, usuario.PasswordHash)
-    P-->>H: true (PBKDF2 / Fallback Legacy)
-    H-->>C: UsuarioDto { id, nombre, email, rol }
-    C->>S: SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, ClaimsPrincipal)
-    Note over C,S: Emite cookie segura "RutaSegura.Session" (HttpOnly, SameSite=Lax, Secure)
-    C-->>U: 200 OK + Set-Cookie ("RutaSegura.Session") + UsuarioDto
-```
