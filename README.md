@@ -189,3 +189,47 @@ sequenceDiagram
     Note over C,S: Emite cookie segura "RutaSegura.Session" (HttpOnly, SameSite=Lax, Secure)
     C-->>U: 200 OK + Set-Cookie ("RutaSegura.Session") + UsuarioDto
 ```
+
+---
+
+## 🔄 Diagrama de Secuencia: Asignación de Pedido a Repartidor (RF11)
+
+Flujo de asignación con validaciones de invariantes de dominio (disponibilidad y capacidad máxima operativa):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor E as Encargado (Autenticado)
+    participant C as RepartidoresController
+    participant H as AsignarPedidoHandler
+    participant RR as IRepartidorRepository
+    participant PR as IPedidoRepository
+    participant R as Repartidor (Domain)
+    participant P as Pedido (Domain)
+    participant U as IUnitOfWork
+
+    E->>C: POST /api/repartidores/{id}/pedidos/{pedidoId}
+    Note over E,C: Protegido con [Authorize] (Cookie HttpOnly)
+    C->>H: HandleAsync(AsignarPedidoCommand)
+    H->>RR: GetByIdAsync(repartidorId)
+    RR-->>H: repartidor
+    H->>PR: GetByIdAsync(pedidoId)
+    PR-->>H: pedido
+    H->>R: AsignarPedido(pedido)
+    activate R
+    Note over R: 1. Valida Disponible == true
+    Note over R: 2. Valida Pedido no entregado/cancelado
+    Note over R: 3. Valida CargaActiva < CapacidadMaxima (5)
+    R->>P: AsignarRepartidor(this)
+    activate P
+    Note over P: Estado = Asignado, RepartidorId = id
+    deactivate P
+    R->>R: _pedidos.Add(pedido)
+    deactivate R
+    H->>RR: Update(repartidor)
+    H->>PR: Update(pedido)
+    H->>U: SaveChangesAsync()
+    U-->>H: OK
+    H-->>C: void
+    C-->>E: 204 NoContent
+```

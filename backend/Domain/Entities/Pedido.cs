@@ -73,6 +73,9 @@ public class Pedido
         if (!repartidor.Disponible)
             throw new DomainException("El repartidor no se encuentra disponible.");
 
+        if (Estado == EstadoPedido.Entregado || Estado == EstadoPedido.Cancelado)
+            throw new DomainException("No se puede asignar un pedido que ya ha sido entregado o cancelado.");
+
         RepartidorId = repartidor.Id;
         Repartidor = repartidor;
         Estado = EstadoPedido.Asignado;
