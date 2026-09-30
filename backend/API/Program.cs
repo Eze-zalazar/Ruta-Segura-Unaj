@@ -62,6 +62,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IRepartidorRepository, RepartidorRepository>();
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 
 // Inyección de dependencias - Casos de uso (Application)
 // Usuarios / Autenticación
@@ -80,6 +81,13 @@ builder.Services.AddScoped<Application.UseCases.Clientes.CrearCliente.CrearClien
 builder.Services.AddScoped<Application.UseCases.Clientes.ActualizarCliente.ActualizarClienteHandler>();
 builder.Services.AddScoped<Application.UseCases.Clientes.EliminarCliente.EliminarClienteHandler>();
 builder.Services.AddScoped<Application.UseCases.Clientes.ObtenerClientePorId.ObtenerClientePorIdHandler>();
+
+// Pedidos (RF06, RF07, RF08)
+builder.Services.AddScoped<Application.UseCases.Pedidos.CrearPedido.CrearPedidoHandler>();
+builder.Services.AddScoped<Application.UseCases.Pedidos.ActualizarPedido.ActualizarPedidoHandler>();
+builder.Services.AddScoped<Application.UseCases.Pedidos.CancelarPedido.CancelarPedidoHandler>();
+builder.Services.AddScoped<Application.UseCases.Pedidos.FiltrarPedidos.FiltrarPedidosHandler>();
+builder.Services.AddScoped<Application.UseCases.Pedidos.ObtenerPedidoPorId.ObtenerPedidoPorIdHandler>();
 
 var app = builder.Build();
 

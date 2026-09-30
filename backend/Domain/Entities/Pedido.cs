@@ -51,6 +51,21 @@ public class Pedido
         Observaciones = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones.Trim();
     }
 
+    // Constructor para hidratación y pruebas unitarias
+    public Pedido(
+        int id,
+        int clienteId,
+        DateTime fechaPactada,
+        PrioridadPedido prioridad,
+        string descripcion,
+        string? observaciones = null,
+        EstadoPedido estado = EstadoPedido.Pendiente)
+        : this(clienteId, fechaPactada, prioridad, descripcion, observaciones)
+    {
+        Id = id;
+        Estado = estado;
+    }
+
     public void AsignarRepartidor(Repartidor repartidor)
     {
         ArgumentNullException.ThrowIfNull(repartidor);
@@ -69,6 +84,41 @@ public class Pedido
         Repartidor = null;
         if (Estado == EstadoPedido.Asignado)
             Estado = EstadoPedido.Pendiente;
+    }
+
+    public void ActualizarDatos(
+        string descripcion,
+        DateTime fechaPactada,
+        PrioridadPedido prioridad,
+        string? observaciones = null)
+    {
+        if (Estado == EstadoPedido.Entregado)
+            throw new DomainException("No se puede modificar un pedido que ya ha sido entregado.");
+
+        if (Estado == EstadoPedido.Cancelado)
+            throw new DomainException("No se puede modificar un pedido cancelado.");
+
+        if (string.IsNullOrWhiteSpace(descripcion))
+            throw new DomainException("La descripción del pedido no puede estar vacía.");
+
+        if (fechaPactada == default)
+            throw new DomainException("La fecha pactada no es válida.");
+
+        Descripcion = descripcion.Trim();
+        FechaPactada = fechaPactada;
+        Prioridad = prioridad;
+        Observaciones = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones.Trim();
+    }
+
+    public void Cancelar()
+    {
+        if (Estado == EstadoPedido.Entregado)
+            throw new DomainException("No se puede cancelar un pedido que ya ha sido entregado.");
+
+        if (Estado == EstadoPedido.Cancelado)
+            throw new DomainException("El pedido ya se encuentra cancelado.");
+
+        Estado = EstadoPedido.Cancelado;
     }
 
     public void CambiarEstado(EstadoPedido nuevoEstado)

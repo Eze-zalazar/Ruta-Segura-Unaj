@@ -6,5 +6,6 @@ public enum EstadoPedido
     Asignado = 2,
     EnCamino = 3,
     Entregado = 4,
-    ConInconveniente = 5
+    ConInconveniente = 5,
+    Cancelado = 6
 }
