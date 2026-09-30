@@ -53,4 +53,10 @@ public class Cliente
 
         Nombre = nombre.Trim();
     }
+
+    public void AgregarPedido(Pedido pedido)
+    {
+        ArgumentNullException.ThrowIfNull(pedido);
+        _pedidos.Add(pedido);
+    }
 }
