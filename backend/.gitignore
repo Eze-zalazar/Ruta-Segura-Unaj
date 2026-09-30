@@ -16,6 +16,12 @@ secrets.json
 *.ldf
 *.db
 
+# Cobertura y resultados de pruebas
+[Tt]est[Rr]esults/
+*.cobertura.xml
+*.coverage
+*.coveragexml
+
 # Sistema operativo
 Thumbs.db
 .DS_Store
