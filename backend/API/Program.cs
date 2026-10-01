@@ -10,7 +10,11 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -41,9 +45,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -90,6 +95,11 @@ builder.Services.AddScoped<Application.UseCases.Pedidos.ActualizarPedido.Actuali
 builder.Services.AddScoped<Application.UseCases.Pedidos.CancelarPedido.CancelarPedidoHandler>();
 builder.Services.AddScoped<Application.UseCases.Pedidos.FiltrarPedidos.FiltrarPedidosHandler>();
 builder.Services.AddScoped<Application.UseCases.Pedidos.ObtenerPedidoPorId.ObtenerPedidoPorIdHandler>();
+
+// Seguimiento e Incidencias (RF12, RF13, RF14)
+builder.Services.AddScoped<Application.UseCases.Seguimiento.ActualizarEstadoEntrega.ActualizarEstadoEntregaHandler>();
+builder.Services.AddScoped<Application.UseCases.Seguimiento.RegistrarIncidencia.RegistrarIncidenciaHandler>();
+builder.Services.AddScoped<Application.UseCases.Seguimiento.ConsultarHistorialEntregas.ConsultarHistorialEntregasHandler>();
 
 var app = builder.Build();
 

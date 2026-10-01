@@ -20,6 +20,7 @@ public class PedidoRepository : IPedidoRepository
         return await _context.Pedidos
             .Include(p => p.Cliente)
             .Include(p => p.Repartidor)
+            .Include(p => p.Incidencias)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
@@ -28,6 +29,7 @@ public class PedidoRepository : IPedidoRepository
         return await _context.Pedidos
             .Include(p => p.Cliente)
             .Include(p => p.Repartidor)
+            .Include(p => p.Incidencias)
             .OrderBy(p => p.FechaPactada)
             .ToListAsync(cancellationToken);
     }
@@ -36,7 +38,8 @@ public class PedidoRepository : IPedidoRepository
     {
         IQueryable<Pedido> query = _context.Pedidos
             .Include(p => p.Cliente)
-            .Include(p => p.Repartidor);
+            .Include(p => p.Repartidor)
+            .Include(p => p.Incidencias);
 
         if (estado.HasValue)
         {

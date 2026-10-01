@@ -113,6 +113,34 @@ public class Pedido
         Observaciones = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones.Trim();
     }
 
+    public void MarcarEnCamino()
+    {
+        if (Estado == EstadoPedido.Cancelado)
+            throw new DomainException("No se puede despachar un pedido cancelado.");
+
+        if (Estado == EstadoPedido.Entregado)
+            throw new DomainException("El pedido ya ha sido entregado.");
+
+        if (Estado == EstadoPedido.Pendiente || RepartidorId == null)
+            throw new DomainException("El pedido debe tener un repartidor asignado antes de ponerse en camino.");
+
+        Estado = EstadoPedido.EnCamino;
+    }
+
+    public void RegistrarEntrega()
+    {
+        if (Estado == EstadoPedido.Cancelado)
+            throw new DomainException("No se puede registrar la entrega de un pedido cancelado.");
+
+        if (Estado == EstadoPedido.Entregado)
+            throw new DomainException("El pedido ya ha sido entregado previamente.");
+
+        if (Estado == EstadoPedido.Pendiente || RepartidorId == null)
+            throw new DomainException("El pedido debe ser asignado y despachado antes de registrar la entrega.");
+
+        Estado = EstadoPedido.Entregado;
+    }
+
     public void Cancelar()
     {
         if (Estado == EstadoPedido.Entregado)
@@ -126,12 +154,35 @@ public class Pedido
 
     public void CambiarEstado(EstadoPedido nuevoEstado)
     {
-        Estado = nuevoEstado;
+        if (nuevoEstado == Estado) return;
+
+        switch (nuevoEstado)
+        {
+            case EstadoPedido.EnCamino:
+                MarcarEnCamino();
+                break;
+            case EstadoPedido.Entregado:
+                RegistrarEntrega();
+                break;
+            case EstadoPedido.Cancelado:
+                Cancelar();
+                break;
+            default:
+                Estado = nuevoEstado;
+                break;
+        }
     }
 
     public void RegistrarIncidencia(Incidencia incidencia)
     {
         ArgumentNullException.ThrowIfNull(incidencia);
+
+        if (Estado == EstadoPedido.Cancelado)
+            throw new DomainException("No se pueden registrar incidencias en un pedido cancelado.");
+
+        if (Estado == EstadoPedido.Entregado)
+            throw new DomainException("No se pueden registrar incidencias en un pedido que ya fue entregado.");
+
         _incidencias.Add(incidencia);
         Estado = EstadoPedido.ConInconveniente;
     }

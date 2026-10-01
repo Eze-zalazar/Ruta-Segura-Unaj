@@ -120,6 +120,8 @@ classDiagram
         +asignarRepartidor(r: Repartidor) void
         +cambiarEstado(nuevoEstado: EstadoPedido) void
         +actualizarDatos(descripcion: string, fecha: DateTime, prioridad: PrioridadPedido, obs: string) void
+        +marcarEnCamino() void
+        +registrarEntrega() void
         +cancelar() void
         +registrarIncidencia(inc: Incidencia) void
     }
@@ -232,4 +234,70 @@ sequenceDiagram
     U-->>H: OK
     H-->>C: void
     C-->>E: 204 NoContent
-```
+```
+
+---
+
+## 🔄 Diagrama de Secuencia: Transición de Estado y Registro de Incidencias (RF12 / RF13)
+
+Flujo operativo del ciclo de seguimiento y gestión de incidencias con protección de invariantes de dominio:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor O as Operador / Repartidor (Web UI)
+    participant SC as SeguimientoController
+    participant AEH as ActualizarEstadoEntregaHandler
+    participant RIH as RegistrarIncidenciaHandler
+    participant PR as IPedidoRepository
+    participant P as Pedido (Domain)
+    participant I as Incidencia (Domain)
+    participant U as IUnitOfWork
+
+    rect rgb(240, 245, 255)
+    note over O,U: RF12: Transición de Estado de Entrega (EnCamino / Entregado)
+    O->>SC: PATCH /api/seguimiento/{id}/estado { nuevoEstado: "EnCamino" }
+    Note over O,SC: credentials: 'include' (Cookie HttpOnly)
+    SC->>AEH: HandleAsync(ActualizarEstadoEntregaCommand)
+    AEH->>PR: GetByIdAsync(pedidoId)
+    PR-->>AEH: pedido
+    alt nuevoEstado == EnCamino
+        AEH->>P: MarcarEnCamino()
+        Note over P: Invariante: Repartidor asignado y no cancelado
+    else nuevoEstado == Entregado
+        AEH->>P: RegistrarEntrega()
+        Note over P: Invariante: Pedido despachado y no cancelado
+    end
+    AEH->>PR: Update(pedido)
+    AEH->>U: SaveChangesAsync()
+    U-->>AEH: OK
+    AEH-->>SC: Task (completado)
+    SC-->>O: 204 NoContent
+    end
+
+    rect rgb(255, 245, 245)
+    note over O,U: RF13: Registro de Incidencia en Pedido Activo
+    O->>SC: POST /api/seguimiento/{id}/incidencias { tipo: "Demora", descripcion: "Corte vial" }
+    SC->>RIH: HandleAsync(RegistrarIncidenciaCommand)
+    RIH->>PR: GetByIdAsync(pedidoId)
+    PR-->>RIH: pedido
+    RIH->>I: new Incidencia(pedidoId, tipo, descripcion)
+    Note over I: Valida descripción >= 5 caracteres
+    RIH->>P: RegistrarIncidencia(incidencia)
+    Note over P: Invariante: Pedido no finalizado / _incidencias.Add(incidencia)
+    RIH->>PR: Update(pedido)
+    RIH->>U: SaveChangesAsync()
+    U-->>RIH: OK
+    RIH-->>SC: IncidenciaDto { id, tipo, descripcion, fechaHora, resuelta }
+    SC-->>O: 201 CreatedAtAction + IncidenciaDto
+    end
+```
+
+---
+
+## 💻 Frontend Inicial: Vertical Slice (FRONT-01)
+
+Interfaz de usuario ligera construida con HTML5, Modern Vanilla JS y CSS (Design System propio) sin dependencias externas pesadas, ubicada en `frontend/`:
+- **Seguridad nativa:** Configuración mandatoria de peticiones HTTP con `credentials: 'include'` para intercambio automático de la cookie HttpOnly `RutaSegura.Session`.
+- **Tablero de Seguimiento (RF12 / RF13):** Visualización de pedidos, KPIs dinámicos, filtros por estado, actualización de transiciones operativas y registro rápido de incidencias.
+- **Historial y Trazabilidad (RF14):** Línea de tiempo cronológica (`OrderByDescending`), proyección de última incidencia (`FirstOrDefault`), y paneles visuales para los diccionarios clave-valor (`Dictionary<string, int>`) de conteo por tipo de incidencia y entregas por repartidor.
