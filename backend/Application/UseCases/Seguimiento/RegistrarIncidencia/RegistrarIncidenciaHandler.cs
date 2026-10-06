@@ -10,24 +10,39 @@ public class RegistrarIncidenciaHandler
     private readonly IPedidoRepository _pedidoRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public RegistrarIncidenciaHandler(IPedidoRepository pedidoRepository, IUnitOfWork unitOfWork)
+    public RegistrarIncidenciaHandler(
+        IPedidoRepository pedidoRepository,
+        IUnitOfWork unitOfWork)
     {
         _pedidoRepository = pedidoRepository;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IncidenciaDto> HandleAsync(RegistrarIncidenciaCommand command, CancellationToken cancellationToken = default)
+    public async Task<IncidenciaDto> HandleAsync(
+        RegistrarIncidenciaCommand command,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        var pedido = await _pedidoRepository.GetByIdAsync(command.PedidoId, cancellationToken);
-        if (pedido == null)
-            throw new DomainException($"No se encontró ningún pedido con ID {command.PedidoId}.");
+        var pedido = await _pedidoRepository.GetByIdAsync(
+            command.PedidoId,
+            cancellationToken);
 
-        var incidencia = new Incidencia(command.PedidoId, command.Tipo, command.Descripcion);
+        if (pedido is null)
+        {
+            throw new DomainException(
+                $"No se encontró ningún pedido con ID {command.PedidoId}.");
+        }
+
+        var incidencia = new Incidencia(
+            command.PedidoId,
+            command.Tipo,
+            command.Descripcion);
+
         pedido.RegistrarIncidencia(incidencia);
 
         _pedidoRepository.Update(pedido);
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new IncidenciaDto(
@@ -39,3 +54,4 @@ public class RegistrarIncidenciaHandler
             incidencia.Resuelta);
     }
 }
+
