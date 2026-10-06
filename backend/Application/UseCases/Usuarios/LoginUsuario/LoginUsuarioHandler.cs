@@ -1,3 +1,4 @@
+
 namespace Application.UseCases.Usuarios.LoginUsuario;
 
 using Application.DTOs;
@@ -18,25 +19,47 @@ public class LoginUsuarioHandler
         _passwordHasher = passwordHasher;
     }
 
-    public async Task<UsuarioDto> HandleAsync(LoginUsuarioCommand command, CancellationToken cancellationToken = default)
+    public async Task<UsuarioDto> HandleAsync(
+        LoginUsuarioCommand command,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
 
+        ValidarDatos(command);
+
+        var email = command.Email.Trim();
+        var usuario = await _usuarioRepository.GetByEmailAsync(
+            email,
+            cancellationToken);
+
+        if (usuario is null ||
+            !_passwordHasher.VerifyPassword(
+                command.Password,
+                usuario.PasswordHash))
+        {
+            throw new DomainException("Credenciales inválidas.");
+        }
+
+        return CrearUsuarioDto(usuario);
+    }
+
+    private static void ValidarDatos(LoginUsuarioCommand command)
+    {
         if (string.IsNullOrWhiteSpace(command.Email))
-            throw new DomainException("El email es obligatorio para iniciar sesión.");
+        {
+            throw new DomainException(
+                "El email es obligatorio para iniciar sesión.");
+        }
 
         if (string.IsNullOrWhiteSpace(command.Password))
-            throw new DomainException("La contraseña es obligatoria para iniciar sesión.");
+        {
+            throw new DomainException(
+                "La contraseña es obligatoria para iniciar sesión.");
+        }
+    }
 
-        var emailNormalizado = command.Email.Trim().ToLowerInvariant();
-        var usuario = await _usuarioRepository.GetByEmailAsync(emailNormalizado, cancellationToken);
-        if (usuario == null)
-            throw new DomainException("Credenciales inválidas.");
-
-        var esValida = _passwordHasher.VerifyPassword(command.Password, usuario.PasswordHash);
-        if (!esValida)
-            throw new DomainException("Credenciales inválidas.");
-
+    private static UsuarioDto CrearUsuarioDto(dynamic usuario)
+    {
         return new UsuarioDto(
             usuario.Id,
             usuario.Nombre,
