@@ -34,6 +34,16 @@ public class Incidencia
         Resuelta = false;
     }
 
+    // Constructor para hidratación y pruebas unitarias
+    public Incidencia(int id, int pedidoId, string tipo, string descripcion, DateTime? fechaHora = null, bool resuelta = false)
+        : this(pedidoId, tipo, descripcion)
+    {
+        Id = id;
+        if (fechaHora.HasValue)
+            FechaHora = fechaHora.Value;
+        Resuelta = resuelta;
+    }
+
     public void MarcarResuelta()
     {
         Resuelta = true;

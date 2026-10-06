@@ -1,3 +1,4 @@
+
 namespace Application.UseCases.Pedidos.CancelarPedido;
 
 using Application.Interfaces.Persistence;
@@ -16,17 +17,27 @@ public class CancelarPedidoHandler
         _unitOfWork = unitOfWork;
     }
 
-    public async Task HandleAsync(CancelarPedidoCommand command, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(
+        CancelarPedidoCommand command,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        var pedido = await _pedidoRepository.GetByIdAsync(command.Id, cancellationToken);
-        if (pedido == null)
-            throw new DomainException($"No se encontró ningún pedido con el ID {command.Id}.");
+        var pedido = await _pedidoRepository.GetByIdAsync(
+            command.Id,
+            cancellationToken);
+
+        if (pedido is null)
+        {
+            throw new DomainException(
+                $"No se encontró ningún pedido con el ID {command.Id}.");
+        }
 
         pedido.Cancelar();
 
         _pedidoRepository.Update(pedido);
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
+

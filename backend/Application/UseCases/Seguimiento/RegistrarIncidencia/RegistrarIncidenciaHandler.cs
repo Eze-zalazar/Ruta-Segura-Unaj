@@ -1,40 +1,28 @@
+namespace Application.UseCases.Seguimiento.RegistrarIncidencia;
 
-namespace Application.UseCases.Repartidores.AsignarPedido;
-
+using Application.DTOs;
 using Application.Interfaces.Persistence;
+using Domain.Entities;
 using Domain.Exceptions;
 
-public class AsignarPedidoHandler
+public class RegistrarIncidenciaHandler
 {
-    private readonly IRepartidorRepository _repartidorRepository;
     private readonly IPedidoRepository _pedidoRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public AsignarPedidoHandler(
-        IRepartidorRepository repartidorRepository,
+    public RegistrarIncidenciaHandler(
         IPedidoRepository pedidoRepository,
         IUnitOfWork unitOfWork)
     {
-        _repartidorRepository = repartidorRepository;
         _pedidoRepository = pedidoRepository;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task HandleAsync(
-        AsignarPedidoCommand command,
+    public async Task<IncidenciaDto> HandleAsync(
+        RegistrarIncidenciaCommand command,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
-
-        var repartidor = await _repartidorRepository.GetByIdAsync(
-            command.RepartidorId,
-            cancellationToken);
-
-        if (repartidor is null)
-        {
-            throw new DomainException(
-                $"No se encontró ningún repartidor con ID {command.RepartidorId}.");
-        }
 
         var pedido = await _pedidoRepository.GetByIdAsync(
             command.PedidoId,
@@ -46,11 +34,24 @@ public class AsignarPedidoHandler
                 $"No se encontró ningún pedido con ID {command.PedidoId}.");
         }
 
-        repartidor.AsignarPedido(pedido);
+        var incidencia = new Incidencia(
+            command.PedidoId,
+            command.Tipo,
+            command.Descripcion);
 
-        _repartidorRepository.Update(repartidor);
+        pedido.RegistrarIncidencia(incidencia);
+
         _pedidoRepository.Update(pedido);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new IncidenciaDto(
+            incidencia.Id,
+            incidencia.PedidoId,
+            incidencia.Tipo,
+            incidencia.Descripcion,
+            incidencia.FechaHora,
+            incidencia.Resuelta);
     }
 }
+

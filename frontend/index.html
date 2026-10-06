@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ruta Segura - Sistema de Gestión Logística, Seguimiento de Envíos e Incidencias en Tiempo Real (UNAJ)">
+    <title>Ruta Segura | Tablero de Seguimiento e Incidencias</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+
+    <!-- NAVBAR PRINCIPAL -->
+    <header class="navbar">
+        <a href="#" class="brand">
+            <div class="brand-icon">🚚</div>
+            <div>
+                <span class="brand-title">Ruta Segura</span>
+                <span class="brand-badge">Sprint 4</span>
+            </div>
+        </a>
+
+        <div class="nav-actions">
+            <div id="user-info-container" style="display: none;">
+                <div class="user-badge">
+                    <div class="user-avatar" id="nav-user-avatar">U</div>
+                    <div>
+                        <div class="user-name" id="nav-user-name">Usuario</div>
+                        <div class="user-role" id="nav-user-role">Encargado</div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-login-trigger" class="btn btn-primary btn-sm">Iniciar Sesión</button>
+            <button id="btn-logout" class="btn btn-secondary btn-sm" style="display: none;">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="container">
+
+        <!-- RESUMEN DE MÉTRICAS / KPIS -->
+        <section class="metrics-grid" aria-label="Métricas de operación">
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Total Pedidos</h3>
+                    <div class="value" id="kpi-total">0</div>
+                </div>
+                <div class="metric-icon icon-blue">📦</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>En Camino</h3>
+                    <div class="value" id="kpi-en-camino">0</div>
+                </div>
+                <div class="metric-icon icon-amber">🚴</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Entregados</h3>
+                    <div class="value" id="kpi-entregados">0</div>
+                </div>
+                <div class="metric-icon icon-emerald">✅</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-info">
+                    <h3>Con Incidencias</h3>
+                    <div class="value" id="kpi-incidencias">0</div>
+                </div>
+                <div class="metric-icon icon-rose">⚠️</div>
+            </div>
+        </section>
+
+        <!-- NAVEGACIÓN POR PESTAÑAS -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="tab-seguimiento">
+                <span>📋</span> Tablero de Seguimiento (RF12 / RF13)
+            </button>
+            <button class="tab-btn" data-tab="tab-historial">
+                <span>📜</span> Historial de Entregas (RF14)
+            </button>
+            <button class="tab-btn" data-tab="tab-metricas">
+                <span>📊</span> Métricas LINQ (Clave-Valor)
+            </button>
+        </nav>
+
+        <!-- PESTAÑA 1: TABLERO DE SEGUIMIENTO (RF12 / RF13 / RF11) -->
+        <section id="tab-seguimiento" class="tab-content active">
+            <div class="actions-bar">
+                <div class="filter-group">
+                    <button class="filter-chip active" data-filter="todos">Todos</button>
+                    <button class="filter-chip" data-filter="Pendiente">Pendientes</button>
+                    <button class="filter-chip" data-filter="Asignado">Asignados</button>
+                    <button class="filter-chip" data-filter="EnCamino">En Camino</button>
+                    <button class="filter-chip" data-filter="Entregado">Entregados</button>
+                    <button class="filter-chip" data-filter="Cancelado">Cancelados</button>
+                </div>
+
+                <button id="btn-refresh" class="btn btn-secondary btn-sm">
+                    🔄 Actualizar
+                </button>
+            </div>
+
+            <div class="card-table-container">
+                <table class="orders-table" id="tabla-pedidos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Descripción / Detalle</th>
+                            <th>Fecha Pactada</th>
+                            <th>Prioridad</th>
+                            <th>Repartidor</th>
+                            <th>Estado Actual</th>
+                            <th>Acciones Operativas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidos-table-body">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div class="empty-icon">⏳</div>
+                                <p>Cargando información del tablero...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 2: HISTORIAL CRONOLÓGICO DE ENTREGAS (RF14) -->
+        <section id="tab-historial" class="tab-content">
+            <div class="actions-bar">
+                <div class="filter-group">
+                    <button class="filter-chip active" id="btn-hist-todos">Todos los Eventos</button>
+                    <button class="filter-chip" id="btn-hist-entregados">Solo Entregas Exitosas (Where)</button>
+                    <button class="filter-chip" id="btn-hist-incidencias">Con Incidencias / Inconvenientes (Where)</button>
+                </div>
+            </div>
+
+            <div class="history-layout">
+                <div class="timeline" id="historial-timeline">
+                    <!-- Eventos cronológicos renderizados dinámicamente -->
+                </div>
+
+                <div>
+                    <div class="dictionary-card">
+                        <h4>📌 Trazabilidad y Recorridos LINQ</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                            Consulta ordenada cronológicamente (<code style="color:#A5B4FC">OrderByDescending</code>) con proyección directa a DTOs (<code style="color:#A5B4FC">Select</code>) y última incidencia (<code style="color:#A5B4FC">FirstOrDefault</code>).
+                        </p>
+                        <div id="quick-history-stats" style="font-size: 0.85rem;">
+                            <!-- Resumen dinámico -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 3: ESTRUCTURAS CLAVE-VALOR LINQ (RF14 LINQ e) -->
+        <section id="tab-metricas" class="tab-content">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+                
+                <div class="dictionary-card">
+                    <h4>⚠️ Incidencias por Tipo <span class="brand-badge">Dictionary&lt;string, int&gt;</span></h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Agrupamiento LINQ (<code style="color:#A5B4FC">GroupBy + ToDictionary</code>) sobre la colección de incidencias.
+                    </p>
+                    <div class="key-value-list" id="conteo-incidencias-list">
+                        <div class="empty-state">Cargando métricas...</div>
+                    </div>
+                </div>
+
+                <div class="dictionary-card">
+                    <h4>🚴 Entregas por Repartidor <span class="brand-badge">Dictionary&lt;string, int&gt;</span></h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Pedidos entregados exitosamente filtrados y agrupados por repartidor asignado.
+                    </p>
+                    <div class="key-value-list" id="conteo-repartidores-list">
+                        <div class="empty-state">Cargando métricas...</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: INICIO DE SESIÓN (RF01) -->
+    <div class="modal-overlay" id="modal-login">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">🔐 Iniciar Sesión</h3>
+                <button class="modal-close" data-close="modal-login">&times;</button>
+            </div>
+            <form id="form-login">
+                <div class="modal-body">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                        La sesión utiliza cookies nativas <strong style="color:var(--text-main);">HttpOnly</strong> (<code style="color:var(--primary);">RutaSegura.Session</code>) con credenciales seguras.
+                    </p>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">Correo Electrónico</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="encargado@rutasegura.com" required value="admin@rutasegura.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required value="admin123">
+                    </div>
+
+                    <button type="button" id="btn-fill-demo" class="btn btn-secondary btn-sm" style="width: 100%;">
+                        ⚡ Cargar credenciales de prueba
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="modal-login">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-login">Ingresar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ACTUALIZAR ESTADO DE ENTREGA (RF12) -->
+    <div class="modal-overlay" id="modal-estado">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">🚚 Actualizar Estado del Pedido #<span id="modal-estado-id"></span></h3>
+                <button class="modal-close" data-close="modal-estado">&times;</button>
+            </div>
+            <form id="form-actualizar-estado">
+                <input type="hidden" id="estado-pedido-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Estado Actual</label>
+                        <div id="modal-estado-actual" style="margin-bottom: 1rem;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="select-nuevo-estado">Nuevo Estado (RF12)</label>
+                        <select id="select-nuevo-estado" class="form-control" required>
+                            <option value="EnCamino">🚴 En Camino (Despachado)</option>
+                            <option value="Entregado">✅ Entregado (Entrega exitosa)</option>
+                            <option value="Cancelado">❌ Cancelado</option>
+                        </select>
+                    </div>
+
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">
+                        * Solo se pueden despachar pedidos con repartidor asignado. Los pedidos cancelados o entregados son terminales.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="modal-estado">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-guardar-estado">Confirmar Transición</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: REGISTRAR INCIDENCIA (RF13) -->
+    <div class="modal-overlay" id="modal-incidencia">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">⚠️ Registrar Incidencia en Pedido #<span id="modal-incidencia-id"></span></h3>
+                <button class="modal-close" data-close="modal-incidencia">&times;</button>
+            </div>
+            <form id="form-registrar-incidencia">
+                <input type="hidden" id="incidencia-pedido-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="select-incidencia-tipo">Motivo de Incidencia (RF13)</label>
+                        <select id="select-incidencia-tipo" class="form-control" required>
+                            <option value="Demora">⏳ Demora en Tránsito / Retraso</option>
+                            <option value="Rotura">📦 Rotura / Daño de Embalaje</option>
+                            <option value="DireccionErronea">📍 Dirección Incorrecta o Inexistente</option>
+                            <option value="ClienteAusente">👤 Cliente Ausente en Domicilio</option>
+                            <option value="FallaVehicular">🔧 Desperfecto Mecánico</option>
+                            <option value="Otro">❓ Otro Inconveniente</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="input-incidencia-desc">Descripción Detallada (mínimo 5 caracteres)</label>
+                        <textarea id="input-incidencia-desc" class="form-control" placeholder="Especifique el motivo o detalle de la eventualidad ocurrida..." required minlength="5"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="modal-incidencia">Cancelar</button>
+                    <button type="submit" class="btn btn-danger" id="btn-guardar-incidencia">Registrar Incidencia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ASIGNAR REPARTIDOR (RF11) -->
+    <div class="modal-overlay" id="modal-asignar">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">👤 Asignar Repartidor a Pedido #<span id="modal-asignar-id"></span></h3>
+                <button class="modal-close" data-close="modal-asignar">&times;</button>
+            </div>
+            <form id="form-asignar-repartidor">
+                <input type="hidden" id="asignar-pedido-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="select-repartidor">Seleccionar Repartidor Disponible</label>
+                        <select id="select-repartidor" class="form-control" required>
+                            <option value="">Cargando repartidores...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="modal-asignar">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-guardar-asignacion">Asignar Repartidor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CONTENEDOR DE NOTIFICACIONES TOAST -->
+    <div id="toast-container" aria-live="polite"></div>
+
+    <!-- SCRIPT PRINCIPAL DE LA APLICACIÓN -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
