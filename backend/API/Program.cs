@@ -52,12 +52,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Database Context (MySQL con Pomelo)
+// Database Context (SQL Server)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=localhost;Port=3306;Database=rutasegura_db;User=root;Password=root;";
+    ?? "Server=localhost,1433;Database=RutaSeguraDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
+    options.UseSqlServer(connectionString));
 
 // Inyección de dependencias - Servicios técnicos
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();

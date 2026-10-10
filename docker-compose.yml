@@ -1,13 +1,13 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: rutasegura-mysql
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: rutasegura-sqlserver
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: rutasegura_db
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Your_password123"
+      MSSQL_PID: "Developer"
     ports:
-      - "3306:3306"
+      - "1433:1433"
     volumes:
-      - ./docker/mysql/data:/var/lib/mysql
-    command: --default-authentication-plugin=mysql_native_password
+      - ./docker/sqlserver/data:/var/opt/mssql/data
