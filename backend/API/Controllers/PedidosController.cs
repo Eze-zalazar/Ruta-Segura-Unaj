@@ -58,16 +58,18 @@ public class PedidosController : ControllerBase
         return Ok(pedido);
     }
 
-    // RF06: Alta de pedidos
+    // RF06: Alta de pedidos - solo Encargado
     [HttpPost]
+    [Authorize(Roles = "Encargado")]
     public async Task<ActionResult> Create([FromBody] CrearPedidoCommand command, CancellationToken ct)
     {
         var id = await _crearHandler.HandleAsync(command, ct);
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 
-    // RF07: Edición de campos permitidos
+    // RF07: Edición de campos permitidos - solo Encargado
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Encargado")]
     public async Task<ActionResult> Update(int id, [FromBody] ActualizarPedidoRequest request, CancellationToken ct)
     {
         var command = new ActualizarPedidoCommand(id, request.Descripcion, request.FechaPactada, request.Prioridad, request.Observaciones);
@@ -75,9 +77,10 @@ public class PedidosController : ControllerBase
         return NoContent();
     }
 
-    // RF07: Cancelación de pedidos
+    // RF07: Cancelación de pedidos - solo Encargado
     [HttpPost("{id:int}/cancelar")]
     [HttpPatch("{id:int}/cancelar")]
+    [Authorize(Roles = "Encargado")]
     public async Task<ActionResult> Cancelar(int id, CancellationToken ct)
     {
         var command = new CancelarPedidoCommand(id);
@@ -86,8 +89,10 @@ public class PedidosController : ControllerBase
     }
 }
 
-public record ActualizarPedidoRequest(
-    string Descripcion,
-    DateTime FechaPactada,
-    PrioridadPedido Prioridad,
-    string? Observaciones = null);
+public class ActualizarPedidoRequest
+{
+    public string Descripcion { get; set; } = null!;
+    public DateTime FechaPactada { get; set; }
+    public PrioridadPedido Prioridad { get; set; }
+    public string? Observaciones { get; set; }
+}

@@ -54,7 +54,7 @@ builder.Services.AddCors(options =>
 
 // Database Context (SQL Server)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=localhost,1433;Database=RutaSeguraDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;";
+    ?? "Server=localhost,1433;Database=RutaSeguraDb;User Id=sa;Password=TuPassword123!;TrustServerCertificate=True;";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -113,7 +113,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowFrontend");
 
@@ -121,5 +124,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Inicialización y seed de datos de prueba si la base está vacía
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    await DbSeeder.SeedAsync(context, hasher);
+}
 
 app.Run();

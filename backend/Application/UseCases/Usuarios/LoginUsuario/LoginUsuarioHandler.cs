@@ -57,7 +57,7 @@ public class LoginUsuarioHandler
         }
     }
 
-    private static UsuarioDto CrearUsuarioDto(dynamic usuario)
+    private static UsuarioDto CrearUsuarioDto(Domain.Entities.Usuario usuario)
     {
         return new UsuarioDto(
             usuario.Id,

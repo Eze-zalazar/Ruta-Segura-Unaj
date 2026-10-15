@@ -59,16 +59,18 @@ public class RepartidoresController : ControllerBase
         return Ok(repartidor);
     }
 
-    // RF09: ABM Repartidores (Crear)
+    // RF09: ABM Repartidores (Crear) - solo Encargado
     [HttpPost]
+    [Authorize(Roles = "Encargado")]
     public async Task<ActionResult> Create([FromBody] CrearRepartidorCommand command, CancellationToken ct)
     {
         var id = await _crearHandler.HandleAsync(command, ct);
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 
-    // RF09: ABM Repartidores (Actualizar)
+    // RF09: ABM Repartidores (Actualizar) - solo Encargado
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Encargado")]
     public async Task<ActionResult> Update(int id, [FromBody] ActualizarRepartidorRequest request, CancellationToken ct)
     {
         var command = new ActualizarRepartidorCommand(id, request.Nombre, request.Telefono, request.Vehiculo);
@@ -85,8 +87,9 @@ public class RepartidoresController : ControllerBase
         return NoContent();
     }
 
-    // RF11: Asignar pedido a repartidor
+    // RF11: Asignar pedido a repartidor (solo Encargado)
     [HttpPost("{id:int}/pedidos/{pedidoId:int}")]
+    [Authorize(Roles = "Encargado")]
     public async Task<ActionResult> AsignarPedido(int id, int pedidoId, CancellationToken ct)
     {
         var command = new AsignarPedidoCommand(id, pedidoId);
