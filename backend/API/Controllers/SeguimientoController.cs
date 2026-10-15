@@ -29,6 +29,7 @@ public class SeguimientoController : ControllerBase
 
     // RF12: Actualizar estado de entrega (EnCamino, Entregado, Cancelado)
     [HttpPatch("{pedidoId:int}/estado")]
+    [Authorize(Roles = "Encargado,Repartidor")]
     public async Task<ActionResult> ActualizarEstado(int pedidoId, [FromBody] ActualizarEstadoRequest request, CancellationToken ct)
     {
         var command = new ActualizarEstadoEntregaCommand(pedidoId, request.NuevoEstado);

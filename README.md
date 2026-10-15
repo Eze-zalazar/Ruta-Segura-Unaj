@@ -36,12 +36,31 @@ Pequeños comercios y empresas que realizan sus propias entregas suelen organiza
 ## 🛠️ Metodología y Tecnologías
 
 * **Metodología**: Scrum, con entregas semanales atadas al calendario de clases y seguimiento mediante tablero en Trello.
-* **Lenguaje y Framework**: C# con ASP.NET Core (.NET 9).
-* **Base de Datos**: Microsoft SQL Server.
+* **Lenguaje y Framework**: C# con ASP.NET Core (.NET 8).
+* **Base de Datos**: Microsoft SQL Server (Docker).
 * **Persistencia**: Entity Framework Core con SQL Server.
-* **Diseño**: Aplicación web responsive.
+* **Diseño**: Aplicación web responsive (Vanilla HTML/CSS/JS).
 
 ---
+
+## 🚀 Cómo levantar el proyecto y correr las pruebas
+
+```bash
+# 1. Levantar la base de datos (SQL Server en contenedor)
+docker compose up -d
+
+# 2. Levantar el backend (aplica migraciones y seed de usuarios automáticamente)
+dotnet run --project backend/API
+
+# 3. Correr todas las pruebas unitarias (44 pruebas)
+dotnet test backend/RutaSegura.sln
+```
+
+> **Datos de acceso de prueba:**
+> * **Encargado (Admin):** `admin@rutasegura.com` / `admin123`
+> * **Repartidor:** `lucas@rutasegura.com` / `repartidor123`
+> * **Frontend:** Abrir `frontend/index.html` directamente en el navegador (o con Live Server).
+> * **Swagger API:** `http://localhost:5000/swagger` (o puerto asignado en consola).
 
 ## 📐 Diagrama de Clases UML
 

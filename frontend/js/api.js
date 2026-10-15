@@ -5,9 +5,10 @@
  * para gestionar automáticamente la cookie nativa HttpOnly (`RutaSegura.Session`).
  */
 
-// Base URL configurable: detecta localhost:5086 (backend .NET) o almacena override en localStorage
-const DEFAULT_API_BASE = 'http://localhost:5086';
-export const API_BASE = localStorage.getItem('rutasegura_api_url') || DEFAULT_API_BASE;
+// Base URL configurable: detecta automáticamente si el frontend corre en 127.0.0.1 o localhost para preservar el contexto de cookies
+const defaultHost = (typeof window !== 'undefined' && window.location.hostname === '127.0.0.1') ? '127.0.0.1' : 'localhost';
+const DEFAULT_API_BASE = `http://${defaultHost}:5086`;
+export const API_BASE = (typeof localStorage !== 'undefined' && localStorage.getItem('rutasegura_api_url')) || DEFAULT_API_BASE;
 
 export function setApiBaseUrl(url) {
     if (url) {
@@ -82,17 +83,51 @@ export const api = {
             return request(`/api/pedidos${qs ? '?' + qs : ''}`);
         },
         getById: (id) => request(`/api/pedidos/${id}`),
-        cancelar: (id) => request(`/api/pedidos/${id}`, { method: 'DELETE' })
+        create: (data) => request('/api/pedidos', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        update: (id, data) => request(`/api/pedidos/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        }),
+        cancelar: (id) => request(`/api/pedidos/${id}/cancelar`, { method: 'POST' })
+    },
+
+    // Clientes (RF03, RF04, RF05)
+    clientes: {
+        getAll: (termino = '') => {
+            const qs = termino ? `?termino=${encodeURIComponent(termino)}` : '';
+            return request(`/api/clientes${qs}`);
+        },
+        getById: (id) => request(`/api/clientes/${id}`),
+        create: (data) => request('/api/clientes', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
     },
 
     // Repartidores (RF09, RF10, RF11)
     repartidores: {
-        getAll: () => request('/api/repartidores'),
-        asignar: (repartidorId, pedidoId) => request(`/api/repartidores/${repartidorId}/asignar`, {
-            method: 'POST',
-            body: JSON.stringify({ pedidoId })
+        getAll: (soloDisponibles) => {
+            const qs = soloDisponibles !== undefined ? `?soloDisponibles=${soloDisponibles}` : '';
+            return request(`/api/repartidores${qs}`);
+        },
+        getById: (id) => request(`/api/repartidores/${id}`),
+        asignar: (repartidorId, pedidoId) => request(`/api/repartidores/${repartidorId}/pedidos/${pedidoId}`, {
+            method: 'POST'
         }),
-        getCarga: (id) => request(`/api/repartidores/${id}/carga`)
+        getCarga: (params = {}) => {
+            const query = new URLSearchParams();
+            if (params.soloDisponibles !== undefined) query.append('soloDisponibles', params.soloDisponibles);
+            if (params.soloConCapacidad !== undefined) query.append('soloConCapacidad', params.soloConCapacidad);
+            const qs = query.toString();
+            return request(`/api/repartidores/carga${qs ? '?' + qs : ''}`);
+        },
+        setDisponibilidad: (id, disponible) => request(`/api/repartidores/${id}/disponibilidad`, {
+            method: 'PATCH',
+            body: JSON.stringify({ disponible })
+        })
     },
 
     // Seguimiento e Incidencias (RF12, RF13, RF14)
