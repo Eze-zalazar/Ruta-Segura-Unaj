@@ -1,0 +1,86 @@
+{
+  "version": 2,
+  "dgSpecHash": "FgWHrP/q9ak=",
+  "success": false,
+  "projectFilePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+  "expectedPackageFiles": [],
+  "logs": [
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'coverlet.collector (>= 6.0.0)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "libraryId": "coverlet.collector",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'Microsoft.NET.Test.Sdk (>= 17.8.0)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "libraryId": "Microsoft.NET.Test.Sdk",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'Moq (>= 4.20.70)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "libraryId": "Moq",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'xunit (>= 2.5.3)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "libraryId": "xunit",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'xunit.runner.visualstudio (>= 2.5.3)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "libraryId": "xunit.runner.visualstudio",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'Pomelo.EntityFrameworkCore.MySql (>= 8.0.2)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "libraryId": "Pomelo.EntityFrameworkCore.MySql",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'Swashbuckle.AspNetCore (>= 6.6.2)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\tests\\UnitTests\\UnitTests.csproj",
+      "libraryId": "Swashbuckle.AspNetCore",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
+}

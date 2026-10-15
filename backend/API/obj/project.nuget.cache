@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "dgSpecHash": "JihA7HW0yT4=",
+  "success": false,
+  "projectFilePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\API\\API.csproj",
+  "expectedPackageFiles": [],
+  "logs": [
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'Microsoft.EntityFrameworkCore.Design (>= 8.0.11)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\API\\API.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\API\\API.csproj",
+      "libraryId": "Microsoft.EntityFrameworkCore.Design",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'Swashbuckle.AspNetCore (>= 6.6.2)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\API\\API.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\API\\API.csproj",
+      "libraryId": "Swashbuckle.AspNetCore",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1100",
+      "level": "Error",
+      "message": "Unable to resolve 'Pomelo.EntityFrameworkCore.MySql (>= 8.0.2)' for 'net8.0'. PackageSourceMapping is enabled, the following source(s) were not considered: Package source 1.",
+      "projectPath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\API\\API.csproj",
+      "filePath": "C:\\Users\\gimen\\OneDrive\\Escritorio\\Ruta_Segura\\Ruta-Segura-Unaj\\backend\\API\\API.csproj",
+      "libraryId": "Pomelo.EntityFrameworkCore.MySql",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
+}

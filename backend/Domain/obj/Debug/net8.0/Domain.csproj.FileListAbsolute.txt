@@ -1,0 +1,12 @@
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\bin\Debug\net8.0\Domain.deps.json
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\bin\Debug\net8.0\Domain.dll
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\bin\Debug\net8.0\Domain.pdb
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\Domain.AssemblyInfoInputs.cache
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\Domain.AssemblyInfo.cs
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\Domain.csproj.CoreCompileInputs.cache
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\Domain.sourcelink.json
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\Domain.dll
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\refint\Domain.dll
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\Domain.pdb
+C:\Users\gimen\OneDrive\Escritorio\Ruta_Segura\Ruta-Segura-Unaj\backend\Domain\obj\Debug\net8.0\ref\Domain.dll
