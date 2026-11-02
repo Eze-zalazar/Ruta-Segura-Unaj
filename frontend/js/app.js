@@ -85,7 +85,8 @@ function setLoggedUser(user) {
     const btnLogout = document.getElementById('btn-logout');
     const btnDisponibilidad = document.getElementById('btn-toggle-disponibilidad');
     const btnNuevoPedido = document.getElementById('btn-nuevo-pedido');
-    const tabMetricasBtn = document.querySelector('[data-tab="tab-metricas"]');
+    const tabHistorialBtn = document.getElementById('tab-btn-historial');
+    const tabMetricasBtn = document.getElementById('tab-btn-metricas');
 
     if (user) {
         userContainer.style.display = 'block';
@@ -94,6 +95,9 @@ function setLoggedUser(user) {
         
         const avatar = document.getElementById('nav-user-avatar');
         avatar.textContent = (user.nombre || user.email).charAt(0).toUpperCase();
+
+        // Mostrar pestaña de historial para usuarios autenticados
+        if (tabHistorialBtn) tabHistorialBtn.style.display = 'inline-flex';
 
         const isRepartidor = (user.rol === 'Repartidor');
         if (isRepartidor) {
@@ -108,7 +112,7 @@ function setLoggedUser(user) {
             // Si estaba en la pestaña de métricas, volver a seguimiento
             const activeTab = document.querySelector('.tab-btn.active');
             if (activeTab?.getAttribute('data-tab') === 'tab-metricas') {
-                document.querySelector('[data-tab="tab-seguimiento"]')?.click();
+                document.getElementById('tab-btn-seguimiento')?.click();
             }
         } else {
             avatar.className = 'user-avatar encargado-avatar';
@@ -118,17 +122,59 @@ function setLoggedUser(user) {
         }
 
         updateRoleContextBanner(user);
+        updateFiltrosSegunRol(user);
         btnLogin.style.display = 'none';
         btnLogout.style.display = 'inline-flex';
     } else {
         userContainer.style.display = 'none';
         if (btnDisponibilidad) btnDisponibilidad.style.display = 'none';
         if (btnNuevoPedido) btnNuevoPedido.style.display = 'none';
-        if (tabMetricasBtn) tabMetricasBtn.style.display = 'inline-flex';
+        
+        // Ocultar pestañas protegidas cuando no hay sesión iniciada
+        if (tabHistorialBtn) tabHistorialBtn.style.display = 'none';
+        if (tabMetricasBtn) tabMetricasBtn.style.display = 'none';
+
+        // Restablecer navegación a la pestaña de bienvenida
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById('tab-btn-seguimiento')?.classList.add('active');
+        document.getElementById('tab-seguimiento')?.classList.add('active');
+
         const banner = document.getElementById('role-context-banner');
         if (banner) banner.style.display = 'none';
         btnLogin.style.display = 'inline-flex';
         btnLogout.style.display = 'none';
+        updateFiltrosSegunRol(null);
+    }
+}
+
+function updateFiltrosSegunRol(user) {
+    const chipPendiente = document.getElementById('chip-filter-pendiente');
+    const chipAsignado = document.getElementById('chip-filter-asignado');
+    const kpiCardPendientes = document.getElementById('kpi-card-pendientes');
+
+    if (user?.rol === 'Repartidor') {
+        // 1) En la vista de repartidor el filtro pendientes y asignados no tiene sentido
+        if (chipPendiente) chipPendiente.style.display = 'none';
+        if (chipAsignado) chipAsignado.style.display = 'none';
+        if (kpiCardPendientes) kpiCardPendientes.style.display = 'none';
+
+        if (state.filtroActual === 'Pendiente' || state.filtroActual === 'Asignado') {
+            state.filtroActual = 'todos';
+            document.querySelectorAll('.filter-chip[data-filter]').forEach(c => c.classList.remove('active'));
+            document.getElementById('chip-filter-todos')?.classList.add('active');
+        }
+    } else {
+        // 2) Desde encargados no tiene sentido el filtro asignados ya que no tiene pedidos asignados a él
+        if (chipPendiente) chipPendiente.style.display = 'inline-flex';
+        if (chipAsignado) chipAsignado.style.display = 'none';
+        if (kpiCardPendientes) kpiCardPendientes.style.display = 'flex';
+
+        if (state.filtroActual === 'Asignado') {
+            state.filtroActual = 'todos';
+            document.querySelectorAll('.filter-chip[data-filter]').forEach(c => c.classList.remove('active'));
+            document.getElementById('chip-filter-todos')?.classList.add('active');
+        }
     }
 }
 
@@ -181,10 +227,17 @@ document.getElementById('btn-toggle-disponibilidad')?.addEventListener('click', 
 
 function renderUnauthenticatedState() {
     // Resetear KPIs numéricos
-    document.getElementById('kpi-total').textContent = '0';
-    document.getElementById('kpi-en-camino').textContent = '0';
-    document.getElementById('kpi-entregados').textContent = '0';
-    document.getElementById('kpi-incidencias').textContent = '0';
+    const kpiTotal = document.getElementById('kpi-total');
+    const kpiPendientes = document.getElementById('kpi-pendientes');
+    const kpiCamino = document.getElementById('kpi-en-camino');
+    const kpiEntregados = document.getElementById('kpi-entregados');
+    const kpiIncidencias = document.getElementById('kpi-incidencias');
+
+    if (kpiTotal) kpiTotal.textContent = '0';
+    if (kpiPendientes) kpiPendientes.textContent = '0';
+    if (kpiCamino) kpiCamino.textContent = '0';
+    if (kpiEntregados) kpiEntregados.textContent = '0';
+    if (kpiIncidencias) kpiIncidencias.textContent = '0';
 
     // Ocultar banner contextual y botón de disponibilidad
     const banner = document.getElementById('role-context-banner');
@@ -352,12 +405,14 @@ function updateKpis() {
     const isRepartidor = (state.currentUser?.rol === 'Repartidor');
 
     // Adaptar títulos de KPIs según el rol
-    const totalTitle = document.querySelector('#kpi-total')?.previousElementSibling;
-    const caminoTitle = document.querySelector('#kpi-en-camino')?.previousElementSibling;
-    const entregadosTitle = document.querySelector('#kpi-entregados')?.previousElementSibling;
-    const incidenciasTitle = document.querySelector('#kpi-incidencias')?.previousElementSibling;
+    const totalTitle = document.getElementById('kpi-total-title');
+    const pendientesTitle = document.getElementById('kpi-pendientes-title');
+    const caminoTitle = document.getElementById('kpi-camino-title');
+    const entregadosTitle = document.getElementById('kpi-entregados-title');
+    const incidenciasTitle = document.getElementById('kpi-incidencias-title');
 
     if (totalTitle) totalTitle.textContent = isRepartidor ? 'Mis Pedidos' : 'Total Pedidos';
+    if (pendientesTitle) pendientesTitle.textContent = 'Pendientes de Asignar';
     if (caminoTitle) caminoTitle.textContent = isRepartidor ? 'Mis En Camino' : 'En Camino';
     if (entregadosTitle) entregadosTitle.textContent = isRepartidor ? 'Mis Entregados' : 'Entregados';
     if (incidenciasTitle) incidenciasTitle.textContent = isRepartidor ? 'Mis Incidencias' : 'Con Incidencias';
@@ -368,14 +423,22 @@ function updateKpis() {
         : state.pedidos;
 
     const total = pedidosRelevantes.length;
-    const enCamino = pedidosRelevantes.filter(p => p.estado === 'EnCamino' || p.estado === 3).length;
-    const entregados = pedidosRelevantes.filter(p => p.estado === 'Entregado' || p.estado === 4).length;
-    const incidencias = pedidosRelevantes.filter(p => (p.incidencias && p.incidencias.length > 0) || p.estado === 'ConInconveniente' || p.estado === 5).length;
+    const pendientes = pedidosRelevantes.filter(p => getEstadoString(p.estado) === 'Pendiente').length;
+    const enCamino = pedidosRelevantes.filter(p => getEstadoString(p.estado) === 'EnCamino').length;
+    const entregados = pedidosRelevantes.filter(p => getEstadoString(p.estado) === 'Entregado').length;
+    const incidencias = pedidosRelevantes.filter(p => (p.incidencias && p.incidencias.length > 0) || getEstadoString(p.estado) === 'ConInconveniente').length;
 
-    document.getElementById('kpi-total').textContent = total;
-    document.getElementById('kpi-en-camino').textContent = enCamino;
-    document.getElementById('kpi-entregados').textContent = entregados;
-    document.getElementById('kpi-incidencias').textContent = incidencias;
+    const elTotal = document.getElementById('kpi-total');
+    const elPendientes = document.getElementById('kpi-pendientes');
+    const elCamino = document.getElementById('kpi-en-camino');
+    const elEntregados = document.getElementById('kpi-entregados');
+    const elIncidencias = document.getElementById('kpi-incidencias');
+
+    if (elTotal) elTotal.textContent = total;
+    if (elPendientes) elPendientes.textContent = pendientes;
+    if (elCamino) elCamino.textContent = enCamino;
+    if (elEntregados) elEntregados.textContent = entregados;
+    if (elIncidencias) elIncidencias.textContent = incidencias;
 }
 
 // ====================================================================
@@ -778,7 +841,8 @@ document.getElementById('form-nuevo-pedido')?.addEventListener('submit', async (
     try {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span> Creando...';
-        const fechaPactada = new Date(fechaPactadaVal).toISOString();
+        // Enviar la fecha local directamente sin conversión UTC para no desplazar el horario
+        const fechaPactada = fechaPactadaVal.length === 16 ? `${fechaPactadaVal}:00` : fechaPactadaVal;
         const repartidorId = repartidorIdVal ? parseInt(repartidorIdVal, 10) : null;
         const res = await api.pedidos.create({
             clienteId,
@@ -822,10 +886,22 @@ function abrirModalEditar(pedidoId) {
     document.getElementById('editar-pedido-desc').value = pedido.descripcion || '';
 
     if (pedido.fechaPactada) {
-        const d = new Date(pedido.fechaPactada);
-        const pad = (n) => String(n).padStart(2, '0');
-        const dtLocal = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        document.getElementById('editar-pedido-fecha').value = dtLocal;
+        let dtLocal = '';
+        if (typeof pedido.fechaPactada === 'string') {
+            const raw = pedido.fechaPactada.trim();
+            if (raw.length >= 16 && raw.includes('T') && !raw.endsWith('Z')) {
+                dtLocal = raw.substring(0, 16);
+            } else {
+                const d = new Date(raw);
+                if (!isNaN(d.getTime())) {
+                    const pad = (n) => String(n).padStart(2, '0');
+                    dtLocal = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                }
+            }
+        }
+        if (dtLocal) {
+            document.getElementById('editar-pedido-fecha').value = dtLocal;
+        }
     }
 
     document.getElementById('editar-pedido-prioridad').value = getPrioridadString(pedido.prioridad);
@@ -846,7 +922,8 @@ document.getElementById('form-editar-pedido')?.addEventListener('submit', async 
     try {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span> Guardando...';
-        const fechaPactada = new Date(fechaPactadaVal).toISOString();
+        // Enviar la fecha local directamente sin conversión UTC para no desplazar el horario
+        const fechaPactada = fechaPactadaVal.length === 16 ? `${fechaPactadaVal}:00` : fechaPactadaVal;
         await api.pedidos.update(id, {
             descripcion,
             fechaPactada,
@@ -875,7 +952,11 @@ async function loadHistorial(filtros = {}) {
         if (state.currentUser.rol === 'Repartidor') {
             queryFiltros.repartidorId = state.currentUser.id;
         }
-        state.historial = await api.seguimiento.getHistorial(queryFiltros);
+        const data = await api.seguimiento.getHistorial(queryFiltros);
+        state.historial = data;
+        if (!filtros.soloEntregados && !filtros.soloConIncidencias) {
+            state.allHistorial = data;
+        }
         renderHistorial();
     } catch (err) {
         if (err.status === 401) return;
@@ -891,7 +972,7 @@ function renderHistorial() {
         timeline.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📜</div>
-                <p>No hay eventos registrados en el historial de entregas.</p>
+                <p>No se encontraron eventos para el filtro seleccionado.</p>
             </div>
         `;
         return;
@@ -901,9 +982,46 @@ function renderHistorial() {
         const div = document.createElement('div');
         div.className = 'timeline-item';
         const estadoStr = getEstadoString(item.estado);
+        const esEntregado = (estadoStr === 'Entregado');
+        const tieneIncidencias = item.incidencias && item.incidencias.length > 0;
+
+        let bloqueIncidenciaHtml = '';
+        if (tieneIncidencias) {
+            if (esEntregado) {
+                // Incidencia histórica que no impidió la entrega final
+                bloqueIncidenciaHtml = `
+                    <div style="margin-top:0.75rem; padding:0.6rem 0.8rem; background:rgba(245, 158, 11, 0.08); border-left:3px solid #F59E0B; border-radius:4px;">
+                        <div style="font-size:0.75rem; font-weight:700; color:#FBBF24;">
+                            ⚠️ Incidencia registrada previa a la entrega: [${escapeHtml(item.ultimaIncidencia?.tipo || 'Inconveniente')}] - ${formatDate(item.ultimaIncidencia?.fechaHora)}
+                        </div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">
+                            ${escapeHtml(item.ultimaIncidencia?.descripcion || '')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Incidencia activa o con inconveniente
+                bloqueIncidenciaHtml = `
+                    <div style="margin-top:0.75rem; padding:0.6rem 0.8rem; background:rgba(239, 68, 68, 0.08); border-left:3px solid #EF4444; border-radius:4px;">
+                        <div style="font-size:0.75rem; font-weight:700; color:#F87171;">
+                            🚨 Incidencia Activa: [${escapeHtml(item.ultimaIncidencia?.tipo || 'Problema')}] - ${formatDate(item.ultimaIncidencia?.fechaHora)}
+                        </div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">
+                            ${escapeHtml(item.ultimaIncidencia?.descripcion || '')}
+                        </div>
+                    </div>
+                `;
+            }
+        } else if (esEntregado) {
+            bloqueIncidenciaHtml = `
+                <div style="margin-top:0.6rem; padding:0.45rem 0.75rem; background:rgba(16, 185, 129, 0.08); border-left:3px solid #10B981; border-radius:4px; font-size:0.75rem; color:#34D399; font-weight:600;">
+                    ✅ Entrega exitosa sin incidencias.
+                </div>
+            `;
+        }
 
         div.innerHTML = `
-            <div class="timeline-dot"></div>
+            <div class="timeline-dot" style="${esEntregado && !tieneIncidencias ? 'background:#10B981;' : ''}"></div>
             <div class="timeline-card">
                 <div class="timeline-header">
                     <div>
@@ -917,18 +1035,9 @@ function renderHistorial() {
 
                 <div class="timeline-date">Fecha Pactada: ${formatDate(item.fechaPactada)}</div>
 
-                ${item.ultimaIncidencia ? `
-                    <div style="margin-top:0.75rem; padding:0.6rem 0.8rem; background:rgba(239, 68, 68, 0.08); border-left:3px solid #EF4444; border-radius:4px;">
-                        <div style="font-size:0.75rem; font-weight:700; color:#F87171;">
-                            Última Incidencia: [${escapeHtml(item.ultimaIncidencia.tipo)}] - ${formatDate(item.ultimaIncidencia.fechaHora)}
-                        </div>
-                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">
-                            ${escapeHtml(item.ultimaIncidencia.descripcion)}
-                        </div>
-                    </div>
-                ` : ''}
+                ${bloqueIncidenciaHtml}
 
-                ${item.incidencias && item.incidencias.length > 1 ? `
+                ${tieneIncidencias && item.incidencias.length > 1 ? `
                     <details style="margin-top:0.5rem; font-size:0.75rem; color:var(--text-muted);">
                         <summary style="cursor:pointer; color:var(--primary);">Ver ${item.incidencias.length} incidencias registradas</summary>
                         <ul style="list-style:none; padding-left:0.5rem; margin-top:0.4rem;">
@@ -945,20 +1054,34 @@ function renderHistorial() {
         timeline.appendChild(div);
     });
 
-    // Actualizar resumen rápido
-    const deliveredCount = state.historial.filter(h => getEstadoString(h.estado) === 'Entregado').length;
-    const incidentsCount = state.historial.filter(h => h.incidencias && h.incidencias.length > 0).length;
+    // Métricas de trazabilidad y recorridos (entregas exitosas, total de pedidos, entrega con inconvenientes, entregas canceladas)
+    const baseMetricas = state.allHistorial || state.historial || [];
+    const totalPedidos = baseMetricas.length;
+    const entregasExitosas = baseMetricas.filter(h => getEstadoString(h.estado) === 'Entregado').length;
+    const conInconvenientes = baseMetricas.filter(h => getEstadoString(h.estado) === 'ConInconveniente').length;
+    const entregasCanceladas = baseMetricas.filter(h => getEstadoString(h.estado) === 'Cancelado').length;
 
-    document.getElementById('quick-history-stats').innerHTML = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
-            <span>Entregas completadas:</span>
-            <strong style="color:#34D399">${deliveredCount}</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-            <span>Pedidos con historial de incidencias:</span>
-            <strong style="color:#F87171">${incidentsCount}</strong>
-        </div>
-    `;
+    const statsEl = document.getElementById('quick-history-stats');
+    if (statsEl) {
+        statsEl.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                <span>Total de pedidos:</span>
+                <strong style="color:var(--text-main)">${totalPedidos}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                <span>Entregas exitosas:</span>
+                <strong style="color:#34D399">${entregasExitosas}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                <span>Entrega con inconvenientes:</span>
+                <strong style="color:#F59E0B">${conInconvenientes}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span>Entregas canceladas:</span>
+                <strong style="color:#EF4444">${entregasCanceladas}</strong>
+            </div>
+        `;
+    }
 }
 
 // Filtros para historial
@@ -997,11 +1120,38 @@ async function loadMetricasLinq() {
 
         renderConteoList('conteo-incidencias-list', conteosIncidencias, 'tipo de incidencia');
         renderConteoList('conteo-repartidores-list', conteosRepartidores, 'repartidor con entregas');
+        renderConteoEstados();
         await renderFlotaRepartidores();
     } catch (err) {
         if (err.status === 401) return;
         console.warn('Error al cargar métricas LINQ:', err.message);
     }
+}
+
+function renderConteoEstados() {
+    const list = document.getElementById('conteo-estados-list');
+    if (!list) return;
+
+    const estadosConfig = [
+        { label: 'Pendientes (por asignar)', key: 'Pendiente', color: '#8B5CF6' },
+        { label: 'Asignados (a flota)', key: 'Asignado', color: '#3B82F6' },
+        { label: 'En Camino (en reparto)', key: 'EnCamino', color: '#F59E0B' },
+        { label: 'Entregados (completados)', key: 'Entregado', color: '#10B981' },
+        { label: 'Con Inconveniente', key: 'ConInconveniente', color: '#EF4444' },
+        { label: 'Cancelados', key: 'Cancelado', color: '#6B7280' }
+    ];
+
+    list.innerHTML = '';
+    estadosConfig.forEach(cfg => {
+        const count = state.pedidos.filter(p => getEstadoString(p.estado).toLowerCase() === cfg.key.toLowerCase()).length;
+        const item = document.createElement('div');
+        item.className = 'key-value-item';
+        item.innerHTML = `
+            <span><span class="badge-dot" style="background:${cfg.color}; width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:0.4rem;"></span> ${cfg.label}</span>
+            <span class="key-value-count">${count}</span>
+        `;
+        list.appendChild(item);
+    });
 }
 
 async function renderFlotaRepartidores() {
@@ -1080,12 +1230,22 @@ function renderConteoList(elementId, dictionary, emptyLabel) {
 // GESTIÓN DE PESTAÑAS (TABS)
 // ====================================================================
 document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+        const targetId = btn.getAttribute('data-tab');
+
+        // Blindaje de seguridad: Si no hay usuario autenticado, impedir acceso a secciones protegidas
+        if (!state.currentUser && targetId !== 'tab-seguimiento') {
+            e.preventDefault();
+            e.stopPropagation();
+            showToast('Debe iniciar sesión para acceder a esta sección.', 'warning');
+            openModal('modal-login');
+            return;
+        }
+
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
         btn.classList.add('active');
-        const targetId = btn.getAttribute('data-tab');
         const targetContent = document.getElementById(targetId);
         if (targetContent) targetContent.classList.add('active');
 
@@ -1131,14 +1291,25 @@ function getPrioridadString(prioridad) {
 function formatDate(dateStr) {
     if (!dateStr) return '-';
     try {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('es-AR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        let d;
+        if (typeof dateStr === 'string' && dateStr.includes('T') && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+            const [datePart, timePart] = dateStr.split('T');
+            const [y, m, day] = datePart.split('-').map(Number);
+            const [h, min] = timePart.split(':').map(Number);
+            d = new Date(y, m - 1, day, h, min);
+        } else {
+            d = new Date(dateStr);
+        }
+        if (isNaN(d.getTime())) return dateStr;
+
+        // Formato uniforme de 24 horas (ej: 01/11/2026 13:00 hs) para coincidir con el selector de edición
+        const pad = (n) => String(n).padStart(2, '0');
+        const day = pad(d.getDate());
+        const month = pad(d.getMonth() + 1);
+        const year = d.getFullYear();
+        const hours = pad(d.getHours());
+        const minutes = pad(d.getMinutes());
+        return `${day}/${month}/${year} ${hours}:${minutes} hs`;
     } catch {
         return dateStr;
     }

@@ -99,4 +99,39 @@ public class RF14_HistorialEntregasTests
         Assert.Equal(1, conteoRepartidores["Carlos"]);
         Assert.Equal(1, conteoRepartidores["Ana"]);
     }
+
+    // 4. Verificación de Filtro SoloConIncidencias: solo pedidos con inconvenientes o cancelados, sin duplicar entregados
+    [Fact]
+    public async Task ConsultarHistorial_FiltroSoloConIncidencias_RetornaSoloConInconvenienteOCancelados()
+    {
+        var rep = new Repartidor(1, "Carlos", "c@correo.com", "123", "pwd", "Moto");
+
+        // Pedido 1: Tuvo incidencia pero fue entregado exitosamente
+        var pEntregadoConIncidencia = new Pedido(1, 1, DateTime.UtcNow, PrioridadPedido.Media, "Entregado");
+        pEntregadoConIncidencia.AsignarRepartidor(rep);
+        pEntregadoConIncidencia.MarcarEnCamino();
+        pEntregadoConIncidencia.RegistrarIncidencia(new Incidencia(1, 1, "Demora", "Demora resuelta"));
+        pEntregadoConIncidencia.RegistrarEntrega();
+
+        // Pedido 2: Con inconveniente activo
+        var pConInconveniente = new Pedido(2, 1, DateTime.UtcNow, PrioridadPedido.Alta, "Inconveniente");
+        pConInconveniente.AsignarRepartidor(rep);
+        pConInconveniente.MarcarEnCamino();
+        pConInconveniente.RegistrarIncidencia(new Incidencia(2, 2, "DireccionErronea", "No se encuentra"));
+
+        // Pedido 3: Cancelado
+        var pCancelado = new Pedido(3, 1, DateTime.UtcNow, PrioridadPedido.Baja, "Cancelado");
+        pCancelado.Cancelar();
+
+        _pedidoRepo.Setup(r => r.GetAllAsync(default)).ReturnsAsync(new List<Pedido> { pEntregadoConIncidencia, pConInconveniente, pCancelado });
+
+        var handler = new ConsultarHistorialEntregasHandler(_pedidoRepo.Object);
+        var resultado = await handler.HandleAsync(new ConsultarHistorialEntregasQuery(SoloConIncidencias: true));
+
+        // Debe retornar únicamente el pedido con inconveniente y el cancelado, NO el entregado
+        Assert.Equal(2, resultado.Count);
+        Assert.Contains(resultado, h => h.PedidoId == 2 && h.Estado == EstadoPedido.ConInconveniente);
+        Assert.Contains(resultado, h => h.PedidoId == 3 && h.Estado == EstadoPedido.Cancelado);
+        Assert.DoesNotContain(resultado, h => h.PedidoId == 1);
+    }
 }

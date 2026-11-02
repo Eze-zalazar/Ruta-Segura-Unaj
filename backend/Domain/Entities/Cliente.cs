@@ -2,6 +2,14 @@ namespace Domain.Entities;
 
 using Domain.Exceptions;
 
+/// <summary>
+/// Representa a un cliente destinatario de entregas en el dominio logístico.
+/// Responsabilidad: Encapsula los datos de contacto, dirección física y referencia geográfica, además de la colección protegida de pedidos asociados.
+/// Mensajes que entiende:
+/// - ActualizarContacto(telefono, direccion, referencia): Modifica los datos de localización y comunicación.
+/// - ActualizarNombre(nombre): Modifica la denominación del cliente validando invariantes.
+/// - AgregarPedido(pedido): Asocia un pedido a la colección interna del cliente.
+/// </summary>
 public class Cliente
 {
     private readonly List<Pedido> _pedidos = new();

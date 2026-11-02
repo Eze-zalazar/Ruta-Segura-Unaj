@@ -33,10 +33,10 @@ public class ConsultarHistorialEntregasHandler
             resultado = resultado.Where(p => p.Estado == EstadoPedido.Entregado);
         }
 
-        // b) Filtrar pedidos con incidencias o no entregados (Where condicional/negado)
+        // b) Filtrar solo pedidos con inconvenientes o cancelados (evita duplicar entregados con incidencias)
         if (query?.SoloConIncidencias == true)
         {
-            resultado = resultado.Where(p => p.Incidencias.Any() || p.Estado == EstadoPedido.ConInconveniente);
+            resultado = resultado.Where(p => p.Estado == EstadoPedido.ConInconveniente || p.Estado == EstadoPedido.Cancelado);
         }
 
         if (query?.RepartidorId.HasValue == true)

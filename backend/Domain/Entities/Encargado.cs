@@ -2,6 +2,14 @@ namespace Domain.Entities;
 
 using Domain.Exceptions;
 
+/// <summary>
+/// Representa a un coordinador o encargado de logística dentro de la jerarquía de usuarios.
+/// Responsabilidad: Encapsula el sector organizativo del encargado y define la regla polimórfica de que no recibe entregas.
+/// Mensajes que entiende:
+/// - ActualizarSector(sector): Asigna un nuevo sector de supervisión validando invariantes.
+/// - ObtenerRol(): Identificador polimórfico de rol ("Encargado").
+/// - PuedeAsignarseEntregas(): Devuelve false incondicionalmente por regla de negocio.
+/// </summary>
 public class Encargado : Usuario
 {
     public string Sector { get; private set; } = null!;

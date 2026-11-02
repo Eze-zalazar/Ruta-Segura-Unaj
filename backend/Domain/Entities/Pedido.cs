@@ -3,6 +3,19 @@ namespace Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
 
+/// <summary>
+/// Representa un pedido dentro del sistema logístico.
+/// Responsabilidad: Encapsula el ciclo de vida, la asignación a repartidores, las invariantes de transición de estado y el registro de incidencias asociadas.
+/// Mensajes que entiende:
+/// - AsignarRepartidor(repartidor): Vincula el pedido a un repartidor disponible y transiciona a Asignado.
+/// - DesasignarRepartidor(): Remueve la asignación del repartidor y retrocede a Pendiente si aplicaba.
+/// - ActualizarDatos(descripcion, fechaPactada, prioridad, observaciones): Modifica detalles descriptivos si no fue entregado ni cancelado.
+/// - MarcarEnCamino(): Pone en despacho un pedido previamente asignado.
+/// - RegistrarEntrega(): Concluye exitosamente la entrega de un pedido en tránsito.
+/// - Cancelar(): Finaliza el pedido por anulación.
+/// - CambiarEstado(nuevoEstado): Canaliza transiciones semánticas controladas.
+/// - RegistrarIncidencia(incidencia): Incorpora un inconveniente y pasa a estado ConInconveniente.
+/// </summary>
 public class Pedido
 {
     private readonly List<Incidencia> _incidencias = new();
@@ -22,6 +35,11 @@ public class Pedido
     public Repartidor? Repartidor { get; private set; }
 
     public IReadOnlyCollection<Incidencia> Incidencias => _incidencias.AsReadOnly();
+
+    /// <summary>
+    /// Encapsula el conocimiento del ciclo de vida: indica si el pedido concluyó su ciclo operativo.
+    /// </summary>
+    public bool EstaFinalizado => Estado == EstadoPedido.Entregado || Estado == EstadoPedido.Cancelado;
 
     // Constructor privado sin parámetros para EF Core
     private Pedido() { }
@@ -73,7 +91,7 @@ public class Pedido
         if (!repartidor.Disponible)
             throw new DomainException("El repartidor no se encuentra disponible.");
 
-        if (Estado == EstadoPedido.Entregado || Estado == EstadoPedido.Cancelado)
+        if (EstaFinalizado)
             throw new DomainException("No se puede asignar un pedido que ya ha sido entregado o cancelado.");
 
         RepartidorId = repartidor.Id;
@@ -167,9 +185,14 @@ public class Pedido
             case EstadoPedido.Cancelado:
                 Cancelar();
                 break;
-            default:
-                Estado = nuevoEstado;
+            case EstadoPedido.Asignado when RepartidorId.HasValue:
+                Estado = EstadoPedido.Asignado;
                 break;
+            case EstadoPedido.Pendiente when RepartidorId == null:
+                Estado = EstadoPedido.Pendiente;
+                break;
+            default:
+                throw new DomainException($"Transición de estado no permitida desde {Estado} hacia {nuevoEstado} sin cumplir sus invariantes.");
         }
     }
 

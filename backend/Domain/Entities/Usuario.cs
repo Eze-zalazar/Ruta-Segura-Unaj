@@ -2,6 +2,15 @@ namespace Domain.Entities;
 
 using Domain.Exceptions;
 
+/// <summary>
+/// Clase base abstracta para la jerarquía de usuarios del sistema (LSP).
+/// Responsabilidad: Encapsula identidad, credenciales y autenticación básica, definiendo el contrato polimórfico de roles y aptitud operativa.
+/// Mensajes que entiende:
+/// - ActualizarDatosBasicos(nombre, telefono): Modifica datos de contacto básicos validando invariantes.
+/// - ActualizarPassword(nuevoPasswordHash): Modifica el hash de la contraseña.
+/// - ObtenerRol(): Método abstracto que devuelve la denominación del rol.
+/// - PuedeAsignarseEntregas(): Método abstracto que determina polimórficamente si el usuario es sujeto de asignación de pedidos.
+/// </summary>
 public abstract class Usuario
 {
     public int Id { get; protected set; }

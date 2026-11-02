@@ -17,5 +17,6 @@ public static class PedidoMappings
             p.Descripcion,
             p.Observaciones,
             p.RepartidorId,
-            p.Repartidor?.Nombre);
+            p.Repartidor?.Nombre,
+            p.Incidencias.Select(i => new IncidenciaDto(i.Id, i.PedidoId, i.Tipo, i.Descripcion, i.FechaHora, i.Resuelta)).ToList());
 }

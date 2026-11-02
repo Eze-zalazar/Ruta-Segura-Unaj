@@ -2,6 +2,12 @@ namespace Domain.Entities;
 
 using Domain.Exceptions;
 
+/// <summary>
+/// Representa una eventualidad o problema ocurrido durante el reparto de un pedido.
+/// Responsabilidad: Encapsula el tipo de problema, descripción, marca temporal inmutable y estado de resolución.
+/// Mensajes que entiende:
+/// - MarcarResuelta(): Concluye administrativamente la incidencia cambiando su estado a resuelta.
+/// </summary>
 public class Incidencia
 {
     public int Id { get; private set; }

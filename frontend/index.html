@@ -54,15 +54,23 @@
         <section class="metrics-grid" aria-label="Métricas de operación">
             <div class="metric-card">
                 <div class="metric-info">
-                    <h3>Total Pedidos</h3>
+                    <h3 id="kpi-total-title">Total Pedidos</h3>
                     <div class="value" id="kpi-total">0</div>
                 </div>
                 <div class="metric-icon icon-blue">📦</div>
             </div>
 
+            <div class="metric-card" id="kpi-card-pendientes">
+                <div class="metric-info">
+                    <h3 id="kpi-pendientes-title">Pendientes de Asignar</h3>
+                    <div class="value" id="kpi-pendientes">0</div>
+                </div>
+                <div class="metric-icon icon-purple">⏳</div>
+            </div>
+
             <div class="metric-card">
                 <div class="metric-info">
-                    <h3>En Camino</h3>
+                    <h3 id="kpi-camino-title">En Camino</h3>
                     <div class="value" id="kpi-en-camino">0</div>
                 </div>
                 <div class="metric-icon icon-amber">🚴</div>
@@ -70,7 +78,7 @@
 
             <div class="metric-card">
                 <div class="metric-info">
-                    <h3>Entregados</h3>
+                    <h3 id="kpi-entregados-title">Entregados</h3>
                     <div class="value" id="kpi-entregados">0</div>
                 </div>
                 <div class="metric-icon icon-emerald">✅</div>
@@ -78,7 +86,7 @@
 
             <div class="metric-card">
                 <div class="metric-info">
-                    <h3>Con Incidencias</h3>
+                    <h3 id="kpi-incidencias-title">Con Incidencias</h3>
                     <div class="value" id="kpi-incidencias">0</div>
                 </div>
                 <div class="metric-icon icon-rose">⚠️</div>
@@ -87,13 +95,13 @@
 
         <!-- NAVEGACIÓN POR PESTAÑAS -->
         <nav class="tab-nav">
-            <button class="tab-btn active" data-tab="tab-seguimiento">
+            <button class="tab-btn active" data-tab="tab-seguimiento" id="tab-btn-seguimiento">
                 <span>📋</span> Tablero de Seguimiento
             </button>
-            <button class="tab-btn" data-tab="tab-historial">
+            <button class="tab-btn" data-tab="tab-historial" id="tab-btn-historial" style="display: none;">
                 <span>📜</span> Historial de Entregas
             </button>
-            <button class="tab-btn" data-tab="tab-metricas">
+            <button class="tab-btn" data-tab="tab-metricas" id="tab-btn-metricas" style="display: none;">
                 <span>📊</span> Métricas
             </button>
         </nav>
@@ -110,13 +118,13 @@
             </div>
 
             <div class="actions-bar">
-                <div class="filter-group">
-                    <button class="filter-chip active" data-filter="todos">Todos</button>
-                    <button class="filter-chip" data-filter="Pendiente">Pendientes</button>
-                    <button class="filter-chip" data-filter="Asignado">Asignados</button>
-                    <button class="filter-chip" data-filter="EnCamino">En Camino</button>
-                    <button class="filter-chip" data-filter="Entregado">Entregados</button>
-                    <button class="filter-chip" data-filter="Cancelado">Cancelados</button>
+                <div class="filter-group" id="filter-group-pedidos">
+                    <button class="filter-chip active" data-filter="todos" id="chip-filter-todos">Todos</button>
+                    <button class="filter-chip" data-filter="Pendiente" id="chip-filter-pendiente">Pendientes</button>
+                    <button class="filter-chip" data-filter="Asignado" id="chip-filter-asignado">Asignados</button>
+                    <button class="filter-chip" data-filter="EnCamino" id="chip-filter-encamino">En Camino</button>
+                    <button class="filter-chip" data-filter="Entregado" id="chip-filter-entregado">Entregados</button>
+                    <button class="filter-chip" data-filter="Cancelado" id="chip-filter-cancelado">Cancelados</button>
                 </div>
 
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -160,7 +168,7 @@
                 <div class="filter-group">
                     <button class="filter-chip active" id="btn-hist-todos">Todos los Eventos</button>
                     <button class="filter-chip" id="btn-hist-entregados">Solo Entregas Exitosas </button>
-                    <button class="filter-chip" id="btn-hist-incidencias">Con Incidencias / Inconvenientes</button>
+                    <button class="filter-chip" id="btn-hist-incidencias">Con Inconvenientes / Cancelados</button>
                 </div>
             </div>
 
@@ -200,6 +208,16 @@
                     </p>
                     <div class="key-value-list" id="conteo-repartidores-list">
                         <div class="empty-state">Cargando métricas...</div>
+                    </div>
+                </div>
+
+                <div class="dictionary-card">
+                    <h4>📋 Distribución de Pedidos por Estado</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Conteo general de pedidos agrupados por su estado operativo actual.
+                    </p>
+                    <div class="key-value-list" id="conteo-estados-list">
+                        <div class="empty-state">Cargando distribución...</div>
                     </div>
                 </div>
 

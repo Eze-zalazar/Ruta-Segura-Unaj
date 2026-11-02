@@ -3,6 +3,24 @@ namespace Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
 
+/// <summary>
+/// Representa a un repartidor operativo dentro de la jerarquía de usuarios.
+/// Responsabilidad: Gestiona su capacidad operativa, disponibilidad, asignación de pedidos, recorridos de colecciones y métricas de carga de trabajo.
+/// Mensajes que entiende:
+/// - ObtenerRol(): Identificador polimórfico de rol ("Repartidor").
+/// - PuedeAsignarseEntregas(): Regla polimórfica que evalúa disponibilidad y cupo disponible frente a CapacidadMaxima.
+/// - ActualizarDisponibilidad(disponible) / SetDisponible(disponible): Modifica el estado operativo del repartidor.
+/// - ActualizarVehiculo(vehiculo): Actualiza el medio de transporte asignado.
+/// - AsignarPedido(pedido) / AgregarPedido(pedido): Asocia un pedido si se satisfacen las invariantes de disponibilidad y carga.
+/// - ObtenerCargaTrabajoActiva(): Cantidad de pedidos en curso (no entregados ni cancelados).
+/// - TieneCapacidadDisponible(): Indica si puede recibir más entregas.
+/// - ObtenerPedidosEntregados(): Recorrido de colección de filtrado por condición (cumple).
+/// - ObtenerPedidosNoEntregados(): Recorrido de colección de filtrado complementario (rechazo).
+/// - ObtenerResumenPedidos(): Recorrido de colección de transformación/proyección (map).
+/// - BuscarPrimerPedidoUrgente(): Recorrido de búsqueda del primer elemento que cumple condición.
+/// - ConteoPedidosPorEstado(): Estructura clave-valor (Dictionary) con conteo de ocurrencias de estado.
+/// - ObtenerPedidosOrdenadosPorFechaPactada(): Salida ordenada por criterio explícito determinístico.
+/// </summary>
 public class Repartidor : Usuario
 {
     private readonly List<Pedido> _pedidos = new();
@@ -57,10 +75,12 @@ public class Repartidor : Usuario
     public override string ObtenerRol() => "Repartidor";
     public override bool PuedeAsignarseEntregas() => TieneCapacidadDisponible();
 
-    public void SetDisponible(bool disponible)
+    public void ActualizarDisponibilidad(bool disponible)
     {
         Disponible = disponible;
     }
+
+    public void SetDisponible(bool disponible) => ActualizarDisponibilidad(disponible);
 
     public void ActualizarVehiculo(string vehiculo)
     {
@@ -77,10 +97,10 @@ public class Repartidor : Usuario
         if (!Disponible)
             throw new DomainException("No se puede asignar un pedido a un repartidor que no está disponible.");
 
-        if (pedido.Estado == EstadoPedido.Entregado || pedido.Estado == EstadoPedido.Cancelado)
+        if (pedido.EstaFinalizado)
             throw new DomainException("No se puede asignar un pedido que ya ha sido entregado o cancelado.");
 
-        if (ObtenerCargaTrabajoActiva() >= CapacidadMaxima)
+        if (!TieneCapacidadDisponible())
             throw new DomainException($"El repartidor ha alcanzado su capacidad máxima operativa ({CapacidadMaxima} pedidos).");
 
         _pedidos.Add(pedido);
@@ -90,7 +110,7 @@ public class Repartidor : Usuario
     public void AgregarPedido(Pedido pedido) => AsignarPedido(pedido);
 
     public int ObtenerCargaTrabajoActiva()
-        => _pedidos.Count(p => p.Estado != EstadoPedido.Entregado && p.Estado != EstadoPedido.Cancelado);
+        => _pedidos.Count(p => !p.EstaFinalizado);
 
     public bool TieneCapacidadDisponible()
         => Disponible && ObtenerCargaTrabajoActiva() < CapacidadMaxima;

@@ -13,4 +13,5 @@ public record PedidoDto(
     string Descripcion,
     string? Observaciones,
     int? RepartidorId,
-    string? RepartidorNombre);
+    string? RepartidorNombre,
+    IReadOnlyList<IncidenciaDto>? Incidencias = null);

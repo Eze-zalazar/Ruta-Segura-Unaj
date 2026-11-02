@@ -46,13 +46,8 @@ Pequeños comercios y empresas que realizan sus propias entregas suelen organiza
 ## 🚀 Cómo levantar el proyecto y correr las pruebas
 
 ```bash
-# 1. Levantar la base de datos (SQL Server en contenedor)
 docker compose up -d
-
-# 2. Levantar el backend (aplica migraciones y seed de usuarios automáticamente)
 dotnet run --project backend/API
-
-# 3. Correr todas las pruebas unitarias (44 pruebas)
 dotnet test backend/RutaSegura.sln
 ```
 
@@ -194,103 +189,58 @@ Interfaz de usuario ligera construida con HTML5, Modern Vanilla JS y CSS (Design
 
 ## 🔄 Diagrama de Secuencia UML
 
-Representa la interacción entre los actores, las capas del sistema y las entidades del dominio para el flujo principal de **Gestión del Ciclo de Vida del Pedido (Asignación, Despacho y Resolución por Entrega o Incidencia)**.
+Representa el flujo principal del ciclo de vida del pedido (**Asignación**, **Despacho / Entrega** y **Resolución con Incidencia**) interactuando entre la UI, la API, las entidades del Dominio y la persistencia:
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor Encargado
-    actor Repartidor
-    participant Frontend as Frontend (Web App)
-    participant Backend as Backend (API / Casos de Uso)
-    participant Pedido as Pedido (Dominio)
-    participant Incidencia as Incidencia (Dominio)
+    actor Usuario as Usuario (Encargado / Repartidor)
+    participant UI as Frontend (Web App)
+    participant API as Backend (API)
+    participant Dominio as Pedido (Dominio)
     participant BD as Base de Datos
 
-    %% 1. Asignación del Pedido
-    Note over Encargado, BD: 1. Asignación del Pedido
-    Encargado->>Frontend: Selecciona pedido pendiente y asigna repartidor
-    Frontend->>Backend: POST /api/repartidores/asignar-pedido {pedidoId, repartidorId}
-    Backend->>BD: Consultar Pedido y Repartidor
-    BD-->>Backend: Entidades recuperadas
-    Backend->>Pedido: asignarRepartidor(repartidor)
-    activate Pedido
-    Pedido-->>Backend: Estado actualizado a "Asignado"
-    deactivate Pedido
-    Backend->>BD: Guardar cambios (SaveChangesAsync)
-    BD-->>Backend: Confirmación de persistencia
-    Backend-->>Frontend: 200 OK (Asignación confirmada)
-    Frontend-->>Encargado: Muestra confirmación en pantalla
+    %% 1. Asignar Pedido
+    rect rgb(240, 245, 255)
+    Note over Usuario, BD: 1. Asignar Pedido al Repartidor
+    Usuario->>UI: Selecciona pedido y asigna repartidor
+    UI->>API: POST /api/repartidores/asignar-pedido
+    API->>Dominio: AsignarRepartidor(repartidor)
+    Dominio-->>API: Estado = Asignado
+    API->>BD: Guardar cambios
+    API-->>UI: 200 OK (Asignado)
+    end
 
-    %% 2. Inicio del Recorrido
-    Note over Repartidor, BD: 2. Despacho y Puesta en Camino
-    Repartidor->>Frontend: Consulta sus entregas asignadas
-    Frontend->>Backend: GET /api/pedidos?repartidorId={id}
-    Backend->>BD: Consultar pedidos asignados al repartidor
-    BD-->>Backend: Lista de pedidos
-    Backend-->>Frontend: 200 OK (Listado de pedidos)
-    Frontend-->>Repartidor: Muestra lista de entregas pendientes
-    Repartidor->>Frontend: Marca pedido como "En Camino"
-    Frontend->>Backend: PUT /api/seguimiento/estado {pedidoId, nuevoEstado: EnCamino}
-    Backend->>BD: Obtener Pedido por Id
-    BD-->>Backend: Pedido
-    Backend->>Pedido: cambiarEstado(EnCamino)
-    activate Pedido
-    Pedido-->>Backend: Estado actualizado a "EnCamino"
-    deactivate Pedido
-    Backend->>BD: Guardar cambios (SaveChangesAsync)
-    BD-->>Backend: Confirmación
-    Backend-->>Frontend: 200 OK
-    Frontend-->>Repartidor: Estado actualizado a "En Camino"
+    %% 2. Despacho y Entrega
+    rect rgb(240, 255, 245)
+    Note over Usuario, BD: 2. Despacho y Entrega Exitosa
+    Usuario->>UI: Marca pedido "En Camino"
+    UI->>API: PUT /api/seguimiento/estado (EnCamino)
+    API->>Dominio: MarcarEnCamino()
+    Dominio-->>API: Estado = EnCamino
+    API->>BD: Guardar cambios
 
-    %% 3. Finalización del Reparto (Alternativa: Entrega Exitosa vs Incidencia)
-    Note over Repartidor, BD: 3. Finalización de la Entrega (Alternativas)
-    alt Flujo Exitoso: Entrega Realizada
-        Repartidor->>Frontend: Confirma entrega en destino
-        Frontend->>Backend: PUT /api/seguimiento/estado {pedidoId, nuevoEstado: Entregado}
-        Backend->>BD: Obtener Pedido
-        BD-->>Backend: Pedido
-        Backend->>Pedido: cambiarEstado(Entregado)
-        activate Pedido
-        Pedido-->>Backend: Estado actualizado a "Entregado"
-        deactivate Pedido
-        Backend->>BD: Guardar cambios (SaveChangesAsync)
-        BD-->>Backend: Confirmación
-        Backend-->>Frontend: 200 OK
-        Frontend-->>Repartidor: Entrega registrada exitosamente
+    Usuario->>UI: Confirma entrega en destino
+    UI->>API: PUT /api/seguimiento/estado (Entregado)
+    API->>Dominio: RegistrarEntrega()
+    Dominio-->>API: Estado = Entregado
+    API->>BD: Guardar cambios
+    API-->>UI: 200 OK (Entrega completada)
+    end
 
-    else Flujo Alternativo: Ocurre un Inconveniente (Registro de Incidencia)
-        Repartidor->>Frontend: Reporta problema (cliente ausente, dirección errónea, etc.)
-        Frontend->>Backend: POST /api/seguimiento/incidencias {pedidoId, tipo, descripcion}
-        Backend->>BD: Obtener Pedido
-        BD-->>Backend: Pedido
-        Backend->>Incidencia: new Incidencia(pedidoId, tipo, descripcion)
-        activate Incidencia
-        Incidencia-->>Backend: Instancia creada
-        deactivate Incidencia
-        Backend->>Pedido: registrarIncidencia(incidencia)
-        activate Pedido
-        Pedido-->>Backend: Estado actualizado a "ConInconveniente"
-        deactivate Pedido
-        Backend->>BD: Guardar Incidencia y actualizar Pedido
-        BD-->>Backend: Confirmación
-        Backend-->>Frontend: 201 Created (IncidenciaDTO)
-        Frontend-->>Repartidor: Incidencia guardada con éxito
-        Frontend-->>Encargado: Alerta visual de incidencia en el panel de monitoreo
+    %% 3. Caso Alternativo: Incidencia
+    rect rgb(255, 245, 245)
+    Note over Usuario, BD: 3. Flujo Alternativo: Registro de Incidencia
+    Usuario->>UI: Reporta inconveniente en calle
+    UI->>API: POST /api/seguimiento/incidencias
+    API->>Dominio: RegistrarIncidencia(incidencia)
+    Dominio-->>API: Estado = ConInconveniente
+    API->>BD: Guardar cambios
+    API-->>UI: 201 Created (Alerta registrada)
     end
 ```
 
-### Descripción del Flujo de Secuencia
+### Descripción del Flujo
 
-1. **Asignación del Pedido**:
-   * El **Encargado** visualiza los pedidos pendientes y selecciona un repartidor disponible.
-   * La API procesa la solicitud mediante el caso de uso `AsignarPedido`, invocando el método de dominio `asignarRepartidor(repartidor)` en la entidad `Pedido`. El estado transiciona de `Pendiente` a `Asignado`.
-   * Los cambios se persisten en la base de datos a través del `UnitOfWork`.
-
-2. **Puesta en Camino (Despacho)**:
-   * El **Repartidor** consulta sus asignaciones desde su dispositivo y, al iniciar el reparto, marca el pedido como "En Camino".
-   * El caso de uso `ActualizarEstadoEntrega` invoca `cambiarEstado(EnCamino)`, actualizando el ciclo de vida del pedido a `EnCamino`.
-
-3. **Resolución de la Entrega (Bifurcación `alt`)**:
-   * **Camino Feliz (Entrega Exitosa)**: El repartidor llega al destino y confirma la entrega. Se invoca `cambiarEstado(Entregado)`, culminando el proceso de forma exitosa.
-   * **Flujo Alternativo (Incidencia)**: Si surge un inconveniente en la calle (domicilio inexistente, cliente ausente, rechazo), el repartidor registra el incidente mediante `RegistrarIncidencia`. Se crea la entidad `Incidencia`, se adjunta al pedido con `registrarIncidencia(incidencia)` y el estado del pedido pasa automáticamente a `ConInconveniente`. Esto dispara una alerta en el panel del encargado para su seguimiento o reprogramación.
+1. **Asignación del Pedido**: El Encargado selecciona un pedido y un repartidor disponible. La API invoca `AsignarRepartidor(repartidor)` sobre el `Pedido`, actualizando su estado a `Asignado` y guardando en la base de datos.
+2. **Despacho y Entrega**: El Repartidor inicia el viaje (`MarcarEnCamino()`) y al llegar a destino confirma la entrega (`RegistrarEntrega()`), alcanzando el estado terminal `Entregado`.
+3. **Flujo de Incidencia**: Si surge un inconveniente (cliente ausente, dirección errónea), se reporta a la API, la cual crea la `Incidencia` y ejecuta `RegistrarIncidencia(incidencia)`, dejando el pedido en estado `ConInconveniente` para su seguimiento.
