@@ -1,0 +1,27 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+
+# Configuración local con credenciales reales
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+
+# Base de datos local
+*.mdf
+*.ldf
+*.db
+
+# Cobertura y resultados de pruebas
+[Tt]est[Rr]esults/
+*.cobertura.xml
+*.coverage
+*.coveragexml
+
+# Sistema operativo
+Thumbs.db
+.DS_Store

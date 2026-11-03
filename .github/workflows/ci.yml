@@ -1,0 +1,30 @@
+name: CI - Build & Tests
+
+on:
+  push:
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Compilar y Ejecutar Pruebas
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Descargar código (Checkout)
+      uses: actions/checkout@v4
+
+    - name: Configurar SDK de .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restaurar paquetes NuGet
+      run: dotnet restore backend/RutaSegura.sln
+
+    - name: Compilar solución (Release)
+      run: dotnet build backend/RutaSegura.sln --no-restore --configuration Release
+
+    - name: Ejecutar pruebas unitarias
+      run: dotnet test backend/RutaSegura.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"

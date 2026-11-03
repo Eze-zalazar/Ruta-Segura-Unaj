@@ -1,0 +1,21 @@
+# Docker data volumes
+docker/**/data/
+docker/sqlserver/data/
+
+# IDE / Editor
+.vs/
+.vscode/
+
+# Build and test results
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esults/
+
+# Local database files
+*.mdf
+*.ldf
+*.db
+
+# OS files
+Thumbs.db
+.DS_Store

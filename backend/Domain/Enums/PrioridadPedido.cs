@@ -1,0 +1,9 @@
+namespace Domain.Enums;
+
+public enum PrioridadPedido
+{
+    Baja = 1,
+    Media = 2,
+    Alta = 3,
+    Urgente = 4
+}
